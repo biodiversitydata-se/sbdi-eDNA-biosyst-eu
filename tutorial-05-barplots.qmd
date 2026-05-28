@@ -1,0 +1,62 @@
+---
+title: "5. Taxonomic composition and barplots"
+format:
+  html:
+    toc: false
+---
+
+*Summarise taxonomic composition across habitat types and seasons using stacked barplots.*
+
+### Define the barplot function
+
+The function below aggregates monthly averages within each habitat type and plots stacked barplots for the top taxa.
+
+```r
+plot_barplots <- function(rank, size_taxa = -1, main = "", top_x = 10) {
+  mycols <- colorRampPalette(c(
+    "#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
+    "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00",
+    "#cab2d6", "#6a3d9a", "#ffff99", "#b15928"
+  ))
+  habitats <- names(habitat_cols)
+  par(mfrow = c(length(habitats), 1), mar = c(2, 3, 2, 14), xpd = TRUE)
+  ok <- sort(rowMeans(cladecounts_df$norm[[rank]]),
+             index.return = TRUE, decreasing = TRUE)$ix[1:top_x]
+  if (size_taxa == -1) { size_taxa <- min(1.5, 8 / length(ok)) }
+  for (hab in habitats) {
+    ix <- which(habitat == hab)
+    monthly_averages_matr <- matrix(ncol = 12, nrow = nrow(cladecounts_df$norm[[rank]]))
+    for (j in 1:12) {
+      ix2 <- intersect(ix, which(month == j))
+      if (length(ix2) > 1) { monthly_averages_matr[, j] <- rowMeans(cladecounts_df$norm[[rank]][, ix2]) }
+      if (length(ix2) == 1) { monthly_averages_matr[, j] <- cladecounts_df$norm[[rank]][, ix2] }
+      if (length(ix2) == 0) { monthly_averages_matr[, j] <- 0 }
+    }
+    barplot(monthly_averages_matr[ok, ], col = mycols(length(ok)),
+            main = hab)
+    legend("bottomleft", bty = "n", pch = 19,
+           col    = mycols(length(ok))[length(ok):1],
+           cex    = size_taxa, inset = c(1, 0),
+           legend = rownames(cladecounts_df$norm[[rank]])[rev(ok)])
+  }
+}
+```
+
+### Note on taxonomic ranks
+
+Use numeric rank codes where:
+1 = kingdom (or domain), 2 = phylum, 3 = class, 4 = order, 5 = family, 6 = genus, 7 = species.
+
+### Example: plot top orders
+
+Plot the 8 most abundant insect orders across habitat types:
+
+```r
+plot_barplots(rank = 4, top_x = 8)
+```
+
+This creates one stacked barplot row per habitat type, each showing monthly averages for the selected taxa. You can also adjust the size of the taxa legend with the `size_taxa` parameter.
+
+---
+
+[← Previous](tutorial-04-pcoa.qmd) · [Overview](tutorial.qmd) · [Next →](tutorial-06-randomforest.qmd)

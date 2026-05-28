@@ -1,0 +1,25 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Exploring eDNA in SBDI — BioSyst EU 2026"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: agenda.qmd
+        text: Agenda
+      - href: tutorial.qmd
+        text: Hands-on tutorial
+
+format:
+  html:
+    theme:
+      - flatly
+      - brand
+    css: styles.css
+    toc: true
+
+
+

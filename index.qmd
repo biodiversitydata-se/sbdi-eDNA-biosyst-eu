@@ -1,0 +1,26 @@
+---
+title: "Exploring eDNA in SBDI"
+format:
+  html:
+    toc: false
+---
+
+Welcome to the **Exploring eDNA in SBDI** workshop at
+[BioSyst EU 2026](https://www.biosyst.eu/2026){target="_blank"}, Uppsala, 17–19 August 2026!
+
+## Description
+
+This workshop will demonstrate how environmental DNA (eDNA) / metabarcoding data can be accessed, processed, and analysed within the [Swedish Biodiversity Data Infrastructure (SBDI)](https://biodiversitydata.se/){target="_blank"}. We will show how to download eDNA data, use our R package to unpack, merge, and aggregate datasets, and then explore arthropod biodiversity patterns across habitat types in Sweden using COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"}. The session will also introduce SBDI resources for data submission, processing, and integration with GBIF.
+
+## Expected outcomes
+
+Participants will learn about tools and workflows for eDNA data management and analysis, and how these contribute to open biodiversity knowledge.
+
+## Instructors
+
+- Prof. Anders Andersson — SBDI & KTH SciLifeLab
+- Dr. Daniel Lundin — SBDI & Linnaeus University
+- Dr. Maria Prager — SBDI & University of Gothenburg
+- Karin Garefelt — KTH SciLifeLab
+- Krzysztof Jurdzinski — KTH SciLifeLab
+- Dr. Emma Bell — SU SciLifeLab

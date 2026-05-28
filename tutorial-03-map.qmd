@@ -1,0 +1,124 @@
+---
+title: "3. Map samples"
+format:
+  html:
+    toc: false
+---
+
+*Explore the spatial distribution of samples and their associated habitat types across Sweden.*
+
+### Inspect contextual data
+
+Core sample-level metadata is available in `merged_df$events`:
+
+```r
+colnames(merged_df$events)
+```
+
+Samples are ordered consistently across tables, which makes it straightforward to link sequence data with contextual data. Thus, `rownames(merged_df$events)`, `rownames(merged_df$emof)` and `colnames(merged$counts)` refer to the same samples.
+
+To identify samples from each dataset:
+
+```r
+DS_malaise    <- grep("homogenate", rownames(merged_df$events))
+DS_soillitter <- grep("soil_litter", rownames(merged_df$events))
+```
+
+---
+
+### Extract spatial and temporal variables
+
+```r
+lat   <- merged_df$events$decimalLatitude
+lon   <- merged_df$events$decimalLongitude
+month <- lubridate::month(merged_df$events$eventDate)
+yday  <- lubridate::yday(merged_df$events$eventDate)
+```
+
+---
+
+### Extract habitat type
+
+The `env_local_scale` column contains habitat type classifications based on the [Environment Ontology](https://sites.google.com/site/environmentontology/){target="_blank"} (ENVO). We first inspect the unique values:
+
+```r
+unique(merged_df$events$env_local_scale)
+```
+
+For plotting, we create short labels and assign a colour to each habitat:
+
+```r
+habitat_map <- c(
+  "ENVO:00000091" = "forest",
+  "ENVO:00000077" = "cropland",
+  "ENVO:00000043" = "wetland",
+  "ENVO:00000054" = "grassland",
+  "ENVO:01000249" = "urban",
+  "ENVO:00000213" = "alpine"
+)
+habitat <- habitat_map[merged_df$events$env_local_scale]
+
+habitat_cols <- c(
+  "forest"    = "#2d6a4f",
+  "cropland"  = "#d4a017",
+  "wetland"   = "#4895ef",
+  "grassland" = "#95d5b2",
+  "urban"     = "#adb5bd",
+  "alpine"    = "#9b5de5"
+)
+color_habitat <- habitat_cols[habitat]
+```
+
+::: {.callout-note}
+**Note:** Check the output of `unique(merged_df$events$env_local_scale)` and adjust the `habitat_map` vector if the ENVO identifiers differ from those shown above.
+:::
+
+---
+
+### Prepare plotting symbols
+
+We define sampling-method-specific plotting symbols:
+
+```r
+pch <- rep(NA, nrow(merged_df$events))
+pch[DS_malaise]    <- 21  # circle: Malaise trap
+pch[DS_soillitter] <- 22  # square: soil/litter
+```
+
+---
+
+### Map samples
+
+We plot all sites on a map of Sweden, with point colour indicating habitat type and point shape indicating sampling method:
+
+```r
+newmap <- rworldmap::getMap(resolution = "low")
+
+par(mar = c(2, 2, 2, 2))
+plot(newmap,
+     xlim = c(10, 25),
+     ylim = c(55, 70),
+     asp  = 1,
+     main = "IBA sampling sites")
+
+points(lon, lat,
+       col = "black",
+       bg  = color_habitat,
+       pch = pch,
+       cex = 1.2)
+
+legend("bottomleft", bty = "n",
+       legend = names(habitat_cols),
+       pt.bg  = habitat_cols,
+       pch    = 21, pt.cex = 1.4, cex = 0.9,
+       title  = "Habitat")
+
+legend("bottomright", bty = "n",
+       legend = c("Malaise trap", "Soil/litter"),
+       pch    = c(21, 22), pt.cex = 1.4, cex = 0.9,
+       title  = "Method")
+```
+
+---
+
+[← Previous](tutorial-02-prep.qmd) · [Overview](tutorial.qmd) · [Next →](tutorial-04-pcoa.qmd)

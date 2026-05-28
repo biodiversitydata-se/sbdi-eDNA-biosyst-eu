@@ -1,0 +1,107 @@
+---
+title: "6. Classify habitat type (Random Forest)"
+format:
+  html:
+    toc: false
+---
+
+*Use Random Forest to classify habitat type from community composition data.*
+
+Here we train a classifier that predicts the habitat type of a sample from its arthropod community composition. Good classification accuracy suggests that the community composition is a reliable indicator of habitat.
+
+### Choose target variable
+
+We use habitat type as the target:
+
+```r
+y <- as.factor(habitat)
+```
+
+Remove samples with missing habitat labels:
+
+```r
+ok <- which(!is.na(y))
+y  <- y[ok]
+```
+
+### Create a feature matrix
+
+We use relative abundances of ASVs as features (`norm_sparse` created in [4](tutorial-04-pcoa.qmd)).
+By filtering rare ASVs in sparse space before converting to dense, we avoid creating a large intermediate matrix:
+
+```r
+X_sparse <- Matrix::t(norm_sparse)[ok, , drop = FALSE]  # samples × ASVs (sparse)
+
+# Filter ASVs present in <10% of samples
+keep <- which(Matrix::colSums(X_sparse > 0) / nrow(X_sparse) >= 0.1)
+
+# Convert to dense only after filtering
+X <- as.matrix(X_sparse[, keep, drop = FALSE])
+```
+
+### Train/test split
+
+Split the data into training and test sets to evaluate model performance on unseen samples.
+
+```r
+set.seed(1)
+n         <- nrow(X)
+train_ix  <- sample(seq_len(n), size = round(0.8 * n))
+test_ix   <- setdiff(seq_len(n), train_ix)
+
+X_train <- X[train_ix, , drop = FALSE]
+y_train <- y[train_ix]
+
+X_test  <- X[test_ix, , drop = FALSE]
+y_test  <- y[test_ix]
+```
+
+### Train Random Forest
+
+We train a [random forest classifier](https://www.geeksforgeeks.org/r-language/random-forest-approach-in-r-programming/){target="_blank"} using the R package ranger.
+
+```r
+rf <- ranger(
+  x          = X_train,
+  y          = y_train,
+  num.trees  = 500,
+  importance = "permutation"
+)
+```
+
+500 trees gives a good balance between accuracy and runtime for tutorial datasets. For production models, increasing to 1000–5000 trees can improve stability.
+
+### Predict and evaluate
+
+Assess model performance by predicting habitat type for the test data.
+
+```r
+pred <- predict(rf, data = X_test)$predictions
+
+# Overall accuracy
+mean(pred == y_test)
+
+# Confusion matrix
+table(Predicted = pred, Observed = y_test)
+```
+
+A confusion matrix shows which habitat types are correctly classified and which are confused with each other. High off-diagonal values for a pair of habitats suggest their arthropod communities are similar.
+
+### Variable importance (optional)
+
+Identify which ASVs contribute most to habitat classification.
+
+```r
+imp <- sort(rf$variable.importance, decreasing = TRUE)
+plot(imp, xlab = "ASV rank", ylab = "Permutation importance")
+```
+
+To get the taxonomy of the 10 most important ASVs:
+
+```r
+merged_df$asvs[names(imp[1:10]), 7:10]
+```
+
+---
+
+[← Previous](tutorial-05-barplots.qmd) · [Overview](tutorial.qmd) · [Next →](tutorial-07-airvsground.qmd)

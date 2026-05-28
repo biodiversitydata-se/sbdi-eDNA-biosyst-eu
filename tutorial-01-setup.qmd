@@ -1,0 +1,124 @@
+---
+title: "1. Set up the environment"
+format:
+  html:
+    toc: false
+---
+
+*Set up the R environment used in the tutorial, either via the workshop cloud environment or locally on your laptop.*
+
+## Option A (recommended): Workshop RStudio environment
+
+*Note: This option was only available during the workshop. Otherwise, use Option B.*
+
+A virtual machine running RStudio Server is available in PDC Cloud.
+Log in using the credentials provided during the workshop:
+
+RStudio Server (*available during workshop only*)
+
+Follow the tutorial steps and **avoid creating additional large objects**, as resources are shared. Save your work regularly as an R script. The virtual machine will be shut down after the workshop, so download any code or output you want to keep via the Files pane (More → Export).
+
+### Check required packages
+
+All required packages are pre-installed in the workshop environment. Load them and confirm that they are available:
+
+```r
+library(asvoccur)
+library(ranger)
+library(vegan)
+library(ape)
+library(rworldmap)
+library(lubridate)
+library(data.table)
+```
+
+### Check access to example data {#check-access}
+
+For this tutorial, ASV portal data is pre-downloaded and available on the virtual machine. Check access:
+
+```r
+data_path <- "/srv/course-data/COI"
+list.files(data_path)
+```
+
+If two COI zip files are listed, you are ready to proceed.
+
+## Option B (fallback): Run RStudio locally on your laptop
+
+You will need to install:
+
+1. [R](https://cran.r-project.org/){target="_blank"}<br>
+2. [RStudio](https://posit.co/download/rstudio-desktop/){target="_blank"}
+3. the following R packages:
+   - `remotes`
+   - `asvoccur`
+   - `ranger`
+   - `vegan`
+   - `ape`
+   - `rworldmap`
+   - `lubridate`
+   - `data.table`
+
+To install and load the required R packages:
+
+```r
+# Install from CRAN
+install.packages(c(
+  "remotes",
+  "ranger",
+  "vegan",
+  "ape",
+  "rworldmap",
+  "lubridate",
+  "data.table"
+))
+
+# Install from GitHub
+remotes::install_github("biodiversitydata-se/asvoccur")
+
+# Load
+library(asvoccur)
+library(ranger)
+library(vegan)
+library(ape)
+library(rworldmap)
+library(lubridate)
+library(data.table)
+
+# Confirm version
+packageVersion("asvoccur")  # Should say 1.1.1
+```
+
+### Download example data from the ASV portal
+
+In this option, example data is downloaded directly from the ASV portal.
+
+1. Go to the [ASV portal start page](https://asv-portal.biodiversitydata.se/index){target="_blank"}.
+
+   Click **DOWNLOAD**. If you are not already logged in, you will be redirected to the login page.
+
+2. If you do not already have an account, either:
+   - sign in with a Google or GitHub account, or
+   - create a new SBDI account.
+
+3. On the **Download** page, under **Download link**, download the following datasets:
+
+   - IBA_CO1_homogenate_2019_SE
+   - IBA_CO1_soil_litter_2019_SE
+
+4. After downloading, place both zip files in a single folder:
+
+       course-data/
+       └── COI/
+           ├── IBA_CO1_homogenate_2019_SE.zip
+           └── IBA_CO1_soil_litter_2019_SE.zip
+
+5. Set the path to the data folder in R and confirm access:
+```r
+data_path <- "local/path/to/course-data/COI"
+list.files(data_path)
+```
+
+If both zip files are listed, you are ready to proceed.
+
+[Overview](tutorial.qmd) · [Next →](tutorial-02-prep.qmd)
