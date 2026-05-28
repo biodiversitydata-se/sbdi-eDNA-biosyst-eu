@@ -38,12 +38,12 @@ yday  <- lubridate::yday(merged_df$events$eventDate)
 print(unique(merged_df$events$env_local_scale))
 
 habitat_map <- c(
-  "ENVO:00000091" = "forest",
-  "ENVO:00000077" = "cropland",
-  "ENVO:00000043" = "wetland",
-  "ENVO:00000054" = "grassland",
-  "ENVO:01000249" = "urban",
-  "ENVO:00000213" = "alpine"
+  "forested area [ENVO:00000111]"    = "forest",
+  "area of cropland [ENVO:01000892]" = "cropland",
+  "wetland area [ENVO:00000043]"     = "wetland",
+  "grassland area [ENVO]"            = "grassland",
+  "urban biome [ENVO:01000249]"      = "urban",
+  "alpine biome [ENVO:01001835]"     = "alpine"
 )
 habitat <- habitat_map[merged_df$events$env_local_scale]
 
