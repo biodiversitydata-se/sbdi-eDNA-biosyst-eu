@@ -12,8 +12,6 @@ website:
         text: Agenda
       - href: tutorial.qmd
         text: Hands-on tutorial
-      - href: results.qmd
-        text: Results
 
 format:
   html:

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Exploring eDNA in SBDI – Exploring eDNA in SBDI — BioSyst EU 2026</title>
+<title>Results – Exploring eDNA in SBDI — BioSyst EU 2026</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -75,7 +75,7 @@ ul.task-list li input[type="checkbox"] {
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-fixed fullcontent quarto-light">
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -93,7 +93,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -105,7 +105,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Hands-on tutorial</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./results.html"> 
+    <a class="nav-link active" href="./results.html" aria-current="page"> 
 <span class="menu-text">Results</span></a>
   </li>  
 </ul>
@@ -119,13 +119,25 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sampling-sites-across-sweden" id="toc-sampling-sites-across-sweden" class="nav-link active" data-scroll-target="#sampling-sites-across-sweden">Sampling sites across Sweden</a></li>
+  <li><a href="#community-structure-pcoa" id="toc-community-structure-pcoa" class="nav-link" data-scroll-target="#community-structure-pcoa">Community structure (PCoA)</a></li>
+  <li><a href="#taxonomic-composition-by-habitat" id="toc-taxonomic-composition-by-habitat" class="nav-link" data-scroll-target="#taxonomic-composition-by-habitat">Taxonomic composition by habitat</a></li>
+  <li><a href="#random-forest-classifying-habitat-type" id="toc-random-forest-classifying-habitat-type" class="nav-link" data-scroll-target="#random-forest-classifying-habitat-type">Random Forest: classifying habitat type</a></li>
+  <li><a href="#air-vs.-ground-communities" id="toc-air-vs.-ground-communities" class="nav-link" data-scroll-target="#air-vs.-ground-communities">Air vs.&nbsp;ground communities</a></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Exploring eDNA in SBDI</h1>
+<h1 class="title">Results</h1>
 </div>
 
 
@@ -142,20 +154,38 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Welcome to the <strong>Exploring eDNA in SBDI</strong> workshop at <a href="https://www.biosyst.eu/2026" target="_blank">BioSyst EU 2026</a>, Uppsala, 17–19 August 2026!</p>
-<section id="description" class="level2">
-<h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>This workshop will demonstrate how environmental DNA (eDNA) / metabarcoding data can be accessed, processed, and analysed within the <a href="https://biodiversitydata.se/" target="_blank">Swedish Biodiversity Data Infrastructure (SBDI)</a>. We will show how to download eDNA data, use our R package to unpack, merge, and aggregate datasets, and then explore arthropod biodiversity patterns across habitat types in Sweden using COI metabarcoding data from the <a href="https://www.insectbiomeatlas.org/" target="_blank">Insect Biome Atlas</a>. The session will also introduce SBDI resources for data submission, processing, and integration with GBIF.</p>
+<p><em>Example results from running the tutorial on the IBA COI datasets (<code>IBA_CO1_homogenate_2019_SE</code> and <code>IBA_CO1_soil_litter_2019_SE</code>).</em></p>
+<hr>
+<section id="sampling-sites-across-sweden" class="level3">
+<h3 class="anchored" data-anchor-id="sampling-sites-across-sweden">Sampling sites across Sweden</h3>
+<p><em>Map of the 200 IBA sampling sites coloured by habitat type and shaped by sampling method (Malaise trap vs.&nbsp;soil/litter).</em></p>
+<p><img src="figures/map.png" class="img-fluid"></p>
+<hr>
 </section>
-<section id="expected-outcomes" class="level2">
-<h2 class="anchored" data-anchor-id="expected-outcomes">Expected outcomes</h2>
-<p>Participants will learn about tools and workflows for eDNA data management and analysis, and how these contribute to open biodiversity knowledge.</p>
+<section id="community-structure-pcoa" class="level3">
+<h3 class="anchored" data-anchor-id="community-structure-pcoa">Community structure (PCoA)</h3>
+<p><em>Principal Coordinates Analysis (Bray–Curtis) of ASV-level community composition. Points coloured by habitat type; circles = Malaise trap, squares = soil/litter.</em></p>
+<p><img src="figures/pcoa.png" class="img-fluid"></p>
+<hr>
 </section>
-<section id="instructors" class="level2">
-<h2 class="anchored" data-anchor-id="instructors">Instructors</h2>
-<ul>
-<li>Dr.&nbsp;Maria Prager — SBDI &amp; University of Gothenburg</li>
-</ul>
+<section id="taxonomic-composition-by-habitat" class="level3">
+<h3 class="anchored" data-anchor-id="taxonomic-composition-by-habitat">Taxonomic composition by habitat</h3>
+<p><em>Mean monthly relative abundance of the most common insect orders in each of the six habitat types.</em></p>
+<p><img src="figures/barplots.png" class="img-fluid"></p>
+<hr>
+</section>
+<section id="random-forest-classifying-habitat-type" class="level3">
+<h3 class="anchored" data-anchor-id="random-forest-classifying-habitat-type">Random Forest: classifying habitat type</h3>
+<p><em>Confusion matrix from Random Forest classification of habitat type based on ASV composition (test set, 20% of samples).</em></p>
+<p><img src="figures/rf_confusion.png" class="img-fluid"></p>
+<p><em>ASVs with the highest permutation importance for habitat classification.</em></p>
+<p><img src="figures/rf_importance.png" class="img-fluid"></p>
+<hr>
+</section>
+<section id="air-vs.-ground-communities" class="level3">
+<h3 class="anchored" data-anchor-id="air-vs.-ground-communities">Air vs.&nbsp;ground communities</h3>
+<p><em>Genus-level Bray–Curtis PCoA comparing Malaise trap and soil/litter communities. Barplot shows which insect orders are over-represented in each sampling method.</em></p>
+<p><img src="figures/airvsground.png" class="img-fluid"></p>
 
 
 </section>

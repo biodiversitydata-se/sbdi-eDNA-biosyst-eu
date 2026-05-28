@@ -119,6 +119,10 @@ legend("bottomright", bty = "n",
        title  = "Method")
 ```
 
+*Expected result (click to enlarge):*
+
+[![](figures/map.png)](figures/map.png){target="_blank"}
+
 ---
 
 [← Previous](tutorial-02-prep.qmd) · [Overview](tutorial.qmd) · [Next →](tutorial-04-pcoa.qmd)

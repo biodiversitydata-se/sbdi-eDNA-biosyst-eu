@@ -102,6 +102,10 @@ To get the taxonomy of the 10 most important ASVs:
 merged_df$asvs[names(imp[1:10]), 7:10]
 ```
 
+*Expected results (click to enlarge):*
+
+[![](figures/rf_confusion.png)](figures/rf_confusion.png){target="_blank"} [![](figures/rf_importance.png)](figures/rf_importance.png){target="_blank"}
+
 ---
 
 [← Previous](tutorial-05-barplots.qmd) · [Overview](tutorial.qmd) · [Next →](tutorial-07-airvsground.qmd)

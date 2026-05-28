@@ -87,6 +87,10 @@ legend("bottomright", bty = "n",
        fill   = c("#4895ef", "#d4a017"))
 ```
 
+*Expected results (click to enlarge):*
+
+[![](figures/airvsground_pcoa.png)](figures/airvsground_pcoa.png){target="_blank"} [![](figures/airvsground_orders.png)](figures/airvsground_orders.png){target="_blank"}
+
 ---
 
 [← Previous](tutorial-06-randomforest.qmd) · [Overview](tutorial.qmd)

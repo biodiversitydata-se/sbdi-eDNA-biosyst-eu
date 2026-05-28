@@ -103,5 +103,12 @@
     "title": "Agenda",
     "section": "",
     "text": "Date and location TBC — BioSyst EU 2026, Uppsala University, 17–19 August 2026\n\nIntroduction (10 min)\n\nOverview of SBDI and GBIF\neDNA tools and workflows in SBDI\n\nFrom raw reads to ASVs (10 min)\n\nDenoising and taxonomic annotation with nf-core/ampliseq\n\nData sharing and access in SBDI (10 min)\n\nMetabarcoding data submission to ENA\nSubmission, discovery and download in the ASV portal\nProcessing ASV portal downloads with asvoccur\n\nHands-on tutorial: Import and analyse ASV portal data with R (55 min)\n\nIntegrate ASV portal data with asvoccur\nExplore arthropod biodiversity patterns across habitat types\n\nWrap-up (5 min)\n\nKey takeaways\nSupport and next steps"
+  },
+  {
+    "objectID": "results.html",
+    "href": "results.html",
+    "title": "Results",
+    "section": "",
+    "text": "Example results from running the tutorial on the IBA COI datasets (IBA_CO1_homogenate_2019_SE and IBA_CO1_soil_litter_2019_SE).\n\n\nSampling sites across Sweden\nMap of the 200 IBA sampling sites coloured by habitat type and shaped by sampling method (Malaise trap vs. soil/litter).\n\n\n\n\nCommunity structure (PCoA)\nPrincipal Coordinates Analysis (Bray–Curtis) of ASV-level community composition. Points coloured by habitat type; circles = Malaise trap, squares = soil/litter.\n\n\n\n\nTaxonomic composition by habitat\nMean monthly relative abundance of the most common insect orders in each of the six habitat types.\n\n\n\n\nRandom Forest: classifying habitat type\nConfusion matrix from Random Forest classification of habitat type based on ASV composition (test set, 20% of samples).\n\nASVs with the highest permutation importance for habitat classification.\n\n\n\n\nAir vs. ground communities\nGenus-level Bray–Curtis PCoA comparing Malaise trap and soil/litter communities. Barplot shows which insect orders are over-represented in each sampling method."
   }
 ]

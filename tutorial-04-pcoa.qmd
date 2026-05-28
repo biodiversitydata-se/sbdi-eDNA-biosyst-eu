@@ -86,6 +86,10 @@ legend("center", bty = "n",
 
 Interpretation: the PCoA shows whether community composition is structured by habitat type, sampling method, or both.
 
+*Expected result (click to enlarge):*
+
+[![](figures/pcoa.png)](figures/pcoa.png){target="_blank"}
+
 ---
 
 [← Previous](tutorial-03-map.qmd) · [Overview](tutorial.qmd) · [Next →](tutorial-05-barplots.qmd)
