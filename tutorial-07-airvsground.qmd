@@ -14,7 +14,7 @@ Because the two sampling methods target different ecological layers, we expect t
 We use genus-level normalised counts rather than ASV-level counts. This reduces the effect of sequencing noise and makes the comparison more robust across sampling methods:
 
 ```r
-bray_dist <- as.matrix(vegdist(t(cladecounts_df$norm$genus), method = "bray"))
+bray_dist <- as.matrix(vegdist(t(cladecounts$norm$genus), method = "bray"))
 ```
 
 ### Run PCoA
@@ -64,10 +64,10 @@ legend("center", bty = "n",
 We plot the mean relative abundance of insect orders in each sampling method to see which taxonomic groups are over-represented in the air vs. the ground layer:
 
 ```r
-orders <- rownames(cladecounts_df$norm$order)
+orders <- rownames(cladecounts$norm$order)
 
-mean_malaise    <- rowMeans(cladecounts_df$norm$order[, DS_malaise,    drop = FALSE])
-mean_soillitter <- rowMeans(cladecounts_df$norm$order[, DS_soillitter, drop = FALSE])
+mean_malaise    <- rowMeans(cladecounts$norm$order[, DS_malaise,    drop = FALSE])
+mean_soillitter <- rowMeans(cladecounts$norm$order[, DS_soillitter, drop = FALSE])
 
 top <- order(pmax(mean_malaise, mean_soillitter), decreasing = TRUE)[1:10]
 

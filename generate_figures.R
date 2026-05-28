@@ -1,6 +1,9 @@
 # Run this script to generate all tutorial figures.
 # Figures are saved to the figures/ folder in the website repo.
 
+install.packages('remotes')
+remotes::install_local("~/code/github/asvoccur")
+
 library(asvoccur)
 library(ranger)
 library(vegan)
@@ -19,8 +22,7 @@ fig <- function(name) file.path(figure_dir, name)
 loaded       <- load_data(data_path)
 merged       <- merge_data(loaded)
 merged_df    <- convert_to_df(merged)
-cladecounts  <- sum_by_clade(merged$counts, merged$asvs)
-cladecounts_df <- convert_to_df(cladecounts)
+cladecounts <- sum_by_clade(merged$counts, merged$asvs)
 
 # ── Tutorial 3: Map ───────────────────────────────────────────────────────────
 
@@ -120,24 +122,24 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
   ))
   habitats <- names(habitat_cols)
   par(mfrow = c(length(habitats), 1), mar = c(2, 3, 2, 14), xpd = TRUE)
-  ok <- sort(rowMeans(cladecounts_df$norm[[rank]]),
+  ok <- sort(rowMeans(cladecounts$norm[[rank]]),
              index.return = TRUE, decreasing = TRUE)$ix[1:top_x]
   if (size_taxa == -1) { size_taxa <- min(1.5, 8 / length(ok)) }
   for (hab in habitats) {
     ix <- which(habitat == hab)
     monthly_averages_matr <- matrix(ncol = 12,
-                                    nrow = nrow(cladecounts_df$norm[[rank]]))
+                                    nrow = nrow(cladecounts$norm[[rank]]))
     for (j in 1:12) {
       ix2 <- intersect(ix, which(month == j))
-      if (length(ix2) > 1) monthly_averages_matr[, j] <- rowMeans(cladecounts_df$norm[[rank]][, ix2])
-      if (length(ix2) == 1) monthly_averages_matr[, j] <- cladecounts_df$norm[[rank]][, ix2]
+      if (length(ix2) > 1) monthly_averages_matr[, j] <- rowMeans(cladecounts$norm[[rank]][, ix2])
+      if (length(ix2) == 1) monthly_averages_matr[, j] <- cladecounts$norm[[rank]][, ix2]
       if (length(ix2) == 0) monthly_averages_matr[, j] <- 0
     }
     barplot(monthly_averages_matr[ok, ], col = mycols(length(ok)), main = hab)
     legend("bottomleft", bty = "n", pch = 19,
            col    = mycols(length(ok))[length(ok):1],
            cex    = size_taxa, inset = c(1, 0),
-           legend = rownames(cladecounts_df$norm[[rank]])[rev(ok)])
+           legend = rownames(cladecounts$norm[[rank]])[rev(ok)])
   }
 }
 
@@ -193,7 +195,7 @@ dev.off()
 
 # ── Tutorial 7: Air vs. ground ────────────────────────────────────────────────
 
-bray_dist2 <- as.matrix(vegdist(t(cladecounts_df$norm$genus), method = "bray"))
+bray_dist2 <- as.matrix(vegdist(t(cladecounts$norm$genus), method = "bray"))
 pcoa_res2  <- pcoa(bray_dist2, correction = "cailliez")
 
 xlab2 <- paste0("PC1 (", round(pcoa_res2$values$Rel_corr_eig[1] * 100), "%)")
@@ -223,9 +225,9 @@ legend("center", bty = "n", legend = names(habitat_cols),
        title = "Habitat")
 dev.off()
 
-orders          <- rownames(cladecounts_df$norm$order)
-mean_malaise    <- rowMeans(cladecounts_df$norm$order[, DS_malaise,    drop = FALSE])
-mean_soillitter <- rowMeans(cladecounts_df$norm$order[, DS_soillitter, drop = FALSE])
+orders          <- rownames(cladecounts$norm$order)
+mean_malaise    <- rowMeans(cladecounts$norm$order[, DS_malaise,    drop = FALSE])
+mean_soillitter <- rowMeans(cladecounts$norm$order[, DS_soillitter, drop = FALSE])
 top             <- order(pmax(mean_malaise, mean_soillitter), decreasing = TRUE)[1:10]
 
 png(fig("airvsground_orders.png"), width = 700, height = 500)
