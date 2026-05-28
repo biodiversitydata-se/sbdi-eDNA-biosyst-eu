@@ -101,7 +101,7 @@ points(lon, lat,
        col = "black",
        bg  = color_habitat,
        pch = pch,
-       cex = 1.2)
+       cex = 1.8)
 
 legend("bottomleft", bty = "n",
        legend = names(habitat_cols),

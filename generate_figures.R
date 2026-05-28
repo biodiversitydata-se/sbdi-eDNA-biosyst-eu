@@ -67,7 +67,7 @@ png(fig("map.png"), width = 800, height = 900)
 par(mar = c(2, 2, 2, 2))
 plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1,
      main = "IBA sampling sites")
-points(lon, lat, col = "black", bg = color_habitat, pch = pch, cex = 1.2)
+points(lon, lat, col = "black", bg = color_habitat, pch = pch, cex = 1.8)
 legend("bottomleft", bty = "n", legend = names(habitat_cols),
        pt.bg = habitat_cols, pch = 21, pt.cex = 1.4, cex = 0.9,
        title = "Habitat")
