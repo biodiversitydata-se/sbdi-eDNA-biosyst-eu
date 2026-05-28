@@ -17,10 +17,4 @@ This workshop will demonstrate how environmental DNA (eDNA) / metabarcoding data
 Participants will learn about tools and workflows for eDNA data management and analysis, and how these contribute to open biodiversity knowledge.
 
 ## Instructors
-
-- Prof. Anders Andersson — SBDI & KTH SciLifeLab
-- Dr. Daniel Lundin — SBDI & Linnaeus University
 - Dr. Maria Prager — SBDI & University of Gothenburg
-- Karin Garefelt — KTH SciLifeLab
-- Krzysztof Jurdzinski — KTH SciLifeLab
-- Dr. Emma Bell — SU SciLifeLab
