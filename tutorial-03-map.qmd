@@ -90,29 +90,29 @@ We plot all sites on a map of Sweden, with point colour indicating habitat type 
 ```r
 newmap <- rworldmap::getMap(resolution = "low")
 
-par(mar = c(2, 2, 2, 2))
-plot(newmap,
-     xlim = c(10, 25),
-     ylim = c(55, 70),
-     asp  = 1,
-     main = "IBA sampling sites")
+layout(matrix(c(1, 2, 3, 3), 1, 4))
+par(mar = c(2, 2, 3, 1))
 
-points(lon, lat,
-       col = "black",
-       bg  = color_habitat,
-       pch = pch,
-       cex = 1.8)
+# Panel: Malaise trap
+plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1,
+     main = "Malaise trap")
+points(lon[DS_malaise], lat[DS_malaise],
+       pch = 21, col = "black", bg = color_habitat[DS_malaise], cex = 1.8)
 
+# Panel: Soil/litter
+plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1,
+     main = "Soil/litter")
+points(lon[DS_soillitter], lat[DS_soillitter],
+       pch = 22, col = "black", bg = color_habitat[DS_soillitter], cex = 1.8)
+
+# Legend
+plot.new()
+legend("topleft", bty = "n", legend = names(habitat_cols),
+       pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
+       title = "Habitat")
 legend("bottomleft", bty = "n",
-       legend = names(habitat_cols),
-       pt.bg  = habitat_cols,
-       pch    = 21, pt.cex = 1.4, cex = 0.9,
-       title  = "Habitat")
-
-legend("bottomright", bty = "n",
        legend = c("Malaise trap", "Soil/litter"),
-       pch    = c(21, 22), pt.cex = 1.4, cex = 0.9,
-       title  = "Method")
+       pch = c(21, 22), pt.cex = 1.6, cex = 1.0, title = "Method")
 ```
 
 *Expected result (click to enlarge):*

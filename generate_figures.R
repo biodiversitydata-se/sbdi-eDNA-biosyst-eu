@@ -63,17 +63,30 @@ pch[DS_soillitter] <- 22
 
 newmap <- rworldmap::getMap(resolution = "low")
 
-png(fig("map.png"), width = 800, height = 900)
-par(mar = c(2, 2, 2, 2))
+png(fig("map.png"), width = 1200, height = 700)
+layout(matrix(c(1, 2, 3, 3), 1, 4))
+par(mar = c(2, 2, 3, 1))
+
+# Panel: Malaise trap
 plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1,
-     main = "IBA sampling sites")
-points(lon, lat, col = "black", bg = color_habitat, pch = pch, cex = 1.8)
-legend("bottomleft", bty = "n", legend = names(habitat_cols),
-       pt.bg = habitat_cols, pch = 21, pt.cex = 1.4, cex = 0.9,
+     main = "Malaise trap")
+points(lon[DS_malaise], lat[DS_malaise],
+       pch = 21, col = "black", bg = color_habitat[DS_malaise], cex = 1.8)
+
+# Panel: Soil/litter
+plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1,
+     main = "Soil/litter")
+points(lon[DS_soillitter], lat[DS_soillitter],
+       pch = 22, col = "black", bg = color_habitat[DS_soillitter], cex = 1.8)
+
+# Legend panel
+plot.new()
+legend("topleft", bty = "n", legend = names(habitat_cols),
+       pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
        title = "Habitat")
-legend("bottomright", bty = "n",
+legend("bottomleft", bty = "n",
        legend = c("Malaise trap", "Soil/litter"),
-       pch = c(21, 22), pt.cex = 1.4, cex = 0.9, title = "Method")
+       pch = c(21, 22), pt.cex = 1.6, cex = 1.0, title = "Method")
 dev.off()
 
 # ── Tutorial 4: PCoA ─────────────────────────────────────────────────────────
