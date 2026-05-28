@@ -1,0 +1,52 @@
+---
+title: "Results"
+format:
+  html:
+    toc: true
+---
+
+*Example results from running the tutorial on the IBA COI datasets (`IBA_CO1_homogenate_2019_SE` and `IBA_CO1_soil_litter_2019_SE`).*
+
+---
+
+### Sampling sites across Sweden
+
+*Map of the 200 IBA sampling sites coloured by habitat type and shaped by sampling method (Malaise trap vs. soil/litter).*
+
+![](figures/map.png)
+
+---
+
+### Community structure (PCoA)
+
+*Principal Coordinates Analysis (Bray–Curtis) of ASV-level community composition. Points coloured by habitat type; circles = Malaise trap, squares = soil/litter.*
+
+![](figures/pcoa.png)
+
+---
+
+### Taxonomic composition by habitat
+
+*Mean monthly relative abundance of the most common insect orders in each of the six habitat types.*
+
+![](figures/barplots.png)
+
+---
+
+### Random Forest: classifying habitat type
+
+*Confusion matrix from Random Forest classification of habitat type based on ASV composition (test set, 20% of samples).*
+
+![](figures/rf_confusion.png)
+
+*ASVs with the highest permutation importance for habitat classification.*
+
+![](figures/rf_importance.png)
+
+---
+
+### Air vs. ground communities
+
+*Genus-level Bray–Curtis PCoA comparing Malaise trap and soil/litter communities. Barplot shows which insect orders are over-represented in each sampling method.*
+
+![](figures/airvsground.png)
