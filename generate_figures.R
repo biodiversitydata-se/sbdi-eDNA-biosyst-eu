@@ -79,8 +79,11 @@ ix <- which(sample_depth >= 100000)
 message(length(ix), " of ", length(sample_depth), " samples retained (depth >= 100000)")
 
 # Necessary adaptation: aggregate ASVs to clusters using the same cluster
-# assignments as the original analysis (associatedSequences isn't carried
-# through merge_data(), so read it from loaded$asvs directly)
+# assignments as the original analysis. Read from loaded$asvs, not
+# merged$asvs: merge_data() only restricts columns (dropping
+# associatedSequences) when it actually merges 2+ datasets - with a single
+# dataset, Reduce() never calls the merge function and the column survives
+# by accident, so relying on merged$asvs here would break silently later
 cluster_lookup <- unique(data.table::rbindlist(lapply(loaded$asvs, function(x)
   x[, .(taxonID, associatedSequences)])))
 cluster_id <- cluster_lookup$associatedSequences[match(rownames(merged$counts), cluster_lookup$taxonID)]
