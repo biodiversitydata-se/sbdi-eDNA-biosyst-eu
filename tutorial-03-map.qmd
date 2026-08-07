@@ -17,23 +17,28 @@ colnames(merged_df$events)
 
 Samples are ordered consistently across tables, which makes it straightforward to link sequence data with contextual data. Thus, `rownames(merged_df$events)`, `rownames(merged_df$emof)` and `colnames(merged$counts)` refer to the same samples.
 
-To identify samples from each dataset:
-
-```r
-DS_malaise    <- grep("homogenate", rownames(merged_df$events))
-DS_soillitter <- grep("soil_litter", rownames(merged_df$events))
-```
-
 ---
 
 ### Extract spatial and temporal variables
 
 ```r
-lat   <- merged_df$events$decimalLatitude
-lon   <- merged_df$events$decimalLongitude
+lat   <- as.numeric(merged_df$events$decimalLatitude)
+lon   <- as.numeric(merged_df$events$decimalLongitude)
 month <- lubridate::month(merged_df$events$eventDate)
 yday  <- lubridate::yday(merged_df$events$eventDate)
 ```
+
+::: {.callout-note}
+`eventDate` is stored as a `start/end` interval string. If `month`/`yday` come back as `NA`, parse the start date explicitly instead:
+```r
+event_start <- lubridate::parse_date_time(
+  sub("/.*", "", merged_df$events$eventDate),
+  orders = c("ymd_HMSz", "ymd_HMS", "ymd", "y")
+)
+month <- lubridate::month(event_start)
+yday  <- lubridate::yday(event_start)
+```
+:::
 
 ---
 
@@ -71,48 +76,19 @@ color_habitat <- habitat_cols[habitat]
 
 ---
 
-### Prepare plotting symbols
-
-We define sampling-method-specific plotting symbols:
-
-```r
-pch <- rep(NA, nrow(merged_df$events))
-pch[DS_malaise]    <- 21  # circle: Malaise trap
-pch[DS_soillitter] <- 22  # square: soil/litter
-```
-
----
-
 ### Map samples
 
-We plot all sites on a map of Sweden, with point colour indicating habitat type and point shape indicating sampling method:
+We plot all sites on a map of Sweden, with point colour indicating habitat type. This does not distinguish between datasets — see [step 4](tutorial-04-pcoa.qmd) for a check of whether community structure differs between them:
 
 ```r
 newmap <- rworldmap::getMap(resolution = "low")
 
-layout(matrix(c(1, 2, 3, 3), 1, 4))
 par(mar = c(2, 2, 3, 1))
-
-# Panel: Malaise trap
-plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1,
-     main = "Malaise trap")
-points(lon[DS_malaise], lat[DS_malaise],
-       pch = 21, col = "black", bg = color_habitat[DS_malaise], cex = 1.8)
-
-# Panel: Soil/litter
-plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1,
-     main = "Soil/litter")
-points(lon[DS_soillitter], lat[DS_soillitter],
-       pch = 22, col = "black", bg = color_habitat[DS_soillitter], cex = 1.8)
-
-# Legend
-plot.new()
-legend("topleft", bty = "n", legend = names(habitat_cols),
+plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1, main = "Sampling sites")
+points(lon, lat, pch = 21, col = "black", bg = color_habitat, cex = 1.8)
+legend("bottomleft", bty = "n", legend = names(habitat_cols),
        pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
        title = "Habitat")
-legend("bottomleft", bty = "n",
-       legend = c("Malaise trap", "Soil/litter"),
-       pch = c(21, 22), pt.cex = 1.6, cex = 1.0, title = "Method")
 ```
 
 *Expected result (click to enlarge):*

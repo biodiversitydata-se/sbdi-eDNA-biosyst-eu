@@ -49,6 +49,9 @@ rsconnect/
 .DS_Store
 ._*
 
+# Local ASV portal downloads (large, machine-specific)
+/data/
+
 /.quarto/
 **/*.quarto_ipynb
 .positai

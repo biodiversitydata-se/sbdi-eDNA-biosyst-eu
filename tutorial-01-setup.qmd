@@ -7,6 +7,10 @@ format:
 
 *Set up the R environment used in the tutorial, either via the workshop cloud environment or locally on your laptop.*
 
+::: {.callout-note}
+**Validating against a known result.** Steps 3–5 below make no assumptions about how many datasets are loaded — the exact same code runs whether `data_path` points to a folder with one COI dataset or several. Before working with combined datasets, it's worth first pointing `data_path` at a folder containing only `IBA_CO1_homogenate_2019_SE.zip` and checking that steps 3–5 reproduce previously known results for that single dataset. Once that matches, switch `data_path` to a folder with the full set of datasets you want to combine — no other code changes should be needed.
+:::
+
 ## Option A (recommended): Workshop RStudio environment
 
 *Note: This option was only available during the workshop. Otherwise, use Option B.*
@@ -24,7 +28,6 @@ All required packages are pre-installed in the workshop environment. Load them a
 
 ```r
 library(asvoccur)
-library(ranger)
 library(vegan)
 library(ape)
 library(rworldmap)
@@ -41,7 +44,7 @@ data_path <- "/srv/course-data/COI"
 list.files(data_path)
 ```
 
-If two COI zip files are listed, you are ready to proceed.
+If the expected COI zip file(s) are listed, you are ready to proceed.
 
 ## Option B (fallback): Run RStudio locally on your laptop
 
@@ -52,7 +55,6 @@ You will need to install:
 3. the following R packages:
    - `remotes`
    - `asvoccur`
-   - `ranger`
    - `vegan`
    - `ape`
    - `rworldmap`
@@ -65,7 +67,6 @@ To install and load the required R packages:
 # Install from CRAN
 install.packages(c(
   "remotes",
-  "ranger",
   "vegan",
   "ape",
   "rworldmap",
@@ -78,7 +79,6 @@ remotes::install_github("biodiversitydata-se/asvoccur")
 
 # Load
 library(asvoccur)
-library(ranger)
 library(vegan)
 library(ape)
 library(rworldmap)
@@ -101,17 +101,16 @@ In this option, example data is downloaded directly from the ASV portal.
    - sign in with a Google or GitHub account, or
    - create a new SBDI account.
 
-3. On the **Download** page, under **Download link**, download the following datasets:
+3. On the **Download** page, under **Download link**, download the dataset(s) you want to work with, e.g.:
 
-   - IBA_CO1_homogenate_2019_SE
-   - IBA_CO1_soil_litter_2019_SE
+   - IBA_CO1_homogenate_2019_SE (for initial validation against a known result, see note above)
+   - IBA_CO1_lysate_2019_SE and IBA_CO1_soil_litter_2019_SE (for the combined analysis)
 
-4. After downloading, place both zip files in a single folder:
+4. Place the zip file(s) you downloaded in a single folder, e.g.:
 
        course-data/
        └── COI/
-           ├── IBA_CO1_homogenate_2019_SE.zip
-           └── IBA_CO1_soil_litter_2019_SE.zip
+           └── IBA_CO1_homogenate_2019_SE.zip
 
 5. Set the path to the data folder in R and confirm access:
 ```r
@@ -119,6 +118,6 @@ data_path <- "local/path/to/course-data/COI"
 list.files(data_path)
 ```
 
-If both zip files are listed, you are ready to proceed.
+If the expected zip file(s) are listed, you are ready to proceed.
 
 [Overview](tutorial.qmd) · [Next →](tutorial-02-prep.qmd)

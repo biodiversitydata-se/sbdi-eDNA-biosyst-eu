@@ -7,17 +7,15 @@ format:
 
 This tutorial walks through the main steps needed to integrate ASV portal data in R and explore biodiversity patterns. As a case study, we use COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"} (IBA) project to examine arthropod community composition across habitat types in Sweden.
 
-In 2019, the IBA project collected arthropod samples at 200 sites spanning six habitat types — forest, cropland, wetland, grassland, urban and alpine. The full Swedish IBA dataset comprises four COI datasets that differ in both sampling method (Malaise trap vs. soil/litter extraction) and DNA extraction protocol (ethanol preservation, homogenate, or lysate). Here we use two of those datasets: a Malaise trap homogenate dataset (862 samples, ~142 000 ASVs) and a soil/litter dataset (348 samples, ~31 000 ASVs). Both use the same COI primers, making ASVs directly comparable across methods. Together they capture differences both across habitat types and between the air and ground layers of the ecosystem.
+In 2019, the IBA project collected arthropod samples at 200 sites spanning six habitat types — forest, cropland, wetland, grassland, urban and alpine. The full Swedish IBA dataset comprises four COI datasets that differ in both sampling method (Malaise trap vs. soil/litter extraction) and DNA extraction protocol (ethanol preservation, homogenate, or lysate).
 
-Sections 1–6 work with both datasets combined, using habitat type as the main explanatory variable. Section 7 zooms in on the contrast between the two sampling methods.
+Steps 3–5 do not assume a fixed number of datasets — the same code works whether `data_path` (from [step 1](tutorial-01-setup.qmd)) points at one COI dataset or several merged together. This tutorial currently covers steps 1–5; combining multiple datasets and extending the analysis further will follow in a later revision.
 
 1. [Set up the environment](tutorial-01-setup.qmd) — Access the workshop RStudio environment (or run locally)
 2. [Prepare data](tutorial-02-prep.qmd) — Load, merge and aggregate data sourced from the ASV portal
 3. [Map samples](tutorial-03-map.qmd) — Explore sampling coverage across Sweden and habitat types
-4. [Community structure](tutorial-04-pcoa.qmd) — Bray–Curtis distances and PCoA across samples
+4. [Community structure](tutorial-04-pcoa.qmd) — Spearman-based dissimilarity and PCoA, coloured by year-day, habitat and latitude
 5. [Taxonomic composition](tutorial-05-barplots.qmd) — Taxonomic barplots across habitat types
-6. [Predict habitat type (Random Forest)](tutorial-06-randomforest.qmd) — Random Forest classification from community composition
-7. [Air vs. ground communities](tutorial-07-airvsground.qmd) — Genus-level comparison between Malaise trap and soil/litter samples
 
 [Get started →](tutorial-01-setup.qmd)
 

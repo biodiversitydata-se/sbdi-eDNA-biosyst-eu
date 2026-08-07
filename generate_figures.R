@@ -1,11 +1,11 @@
 # Run this script to generate all tutorial figures.
 # Figures are saved to the figures/ folder in the website repo.
-
-install.packages('remotes')
-remotes::install_local("~/code/github/asvoccur")
+#
+# Works unchanged whether data_path points at one COI dataset or several -
+# point it at a folder with only IBA_CO1_homogenate_2019_SE.zip first to
+# validate against known results, then switch to the combined dataset(s).
 
 library(asvoccur)
-library(ranger)
 library(vegan)
 library(ape)
 library(rworldmap)
@@ -19,18 +19,15 @@ fig <- function(name) file.path(figure_dir, name)
 
 # ── Tutorial 2: Load and prepare data ────────────────────────────────────────
 
-loaded       <- load_data(data_path)
-merged       <- merge_data(loaded)
-merged_df    <- convert_to_df(merged)
+loaded      <- load_data(data_path)
+merged      <- merge_data(loaded)
+merged_df   <- convert_to_df(merged)
 cladecounts <- sum_by_clade(merged$counts, merged$asvs)
 
 # ── Tutorial 3: Map ───────────────────────────────────────────────────────────
 
-DS_malaise    <- grep("homogenate",  rownames(merged_df$events))
-DS_soillitter <- grep("soil_litter", rownames(merged_df$events))
-
-lat   <- merged_df$events$decimalLatitude
-lon   <- merged_df$events$decimalLongitude
+lat   <- as.numeric(merged_df$events$decimalLatitude)
+lon   <- as.numeric(merged_df$events$decimalLongitude)
 month <- lubridate::month(merged_df$events$eventDate)
 yday  <- lubridate::yday(merged_df$events$eventDate)
 
@@ -57,72 +54,75 @@ habitat_cols <- c(
 )
 color_habitat <- habitat_cols[habitat]
 
-pch <- rep(NA, nrow(merged_df$events))
-pch[DS_malaise]    <- 21
-pch[DS_soillitter] <- 22
-
 newmap <- rworldmap::getMap(resolution = "low")
 
-png(fig("map.png"), width = 1200, height = 700)
-layout(matrix(c(1, 2, 3, 3), 1, 4))
+png(fig("map.png"), width = 700, height = 700)
 par(mar = c(2, 2, 3, 1))
-
-# Panel: Malaise trap
-plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1,
-     main = "Malaise trap")
-points(lon[DS_malaise], lat[DS_malaise],
-       pch = 21, col = "black", bg = color_habitat[DS_malaise], cex = 1.8)
-
-# Panel: Soil/litter
-plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1,
-     main = "Soil/litter")
-points(lon[DS_soillitter], lat[DS_soillitter],
-       pch = 22, col = "black", bg = color_habitat[DS_soillitter], cex = 1.8)
-
-# Legend panel
-plot.new()
-legend("topleft", bty = "n", legend = names(habitat_cols),
+plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1, main = "Sampling sites")
+points(lon, lat, pch = 21, col = "black", bg = color_habitat, cex = 1.8)
+legend("bottomleft", bty = "n", legend = names(habitat_cols),
        pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
        title = "Habitat")
-legend("bottomleft", bty = "n",
-       legend = c("Malaise trap", "Soil/litter"),
-       pch = c(21, 22), pt.cex = 1.6, cex = 1.0, title = "Method")
 dev.off()
 
-# ── Tutorial 4: PCoA ─────────────────────────────────────────────────────────
+# ── Tutorial 4: PCoA (Spearman, following iba_microbiome.R) ──────────────────
 
-col_totals  <- Matrix::colSums(merged$counts)
-norm_sparse <- Matrix::t(Matrix::t(merged$counts) / col_totals)
-norm_counts <- as.matrix(norm_sparse)
+sample_depth <- Matrix::colSums(merged$counts)
+print(summary(sample_depth))
+ix <- which(sample_depth >= 100000)
+message(length(ix), " of ", length(sample_depth), " samples retained (depth >= 100000)")
 
-bray_dist <- as.matrix(vegdist(t(norm_counts), method = "bray"))
-pcoa_res  <- pcoa(bray_dist, correction = "cailliez")
+# Necessary adaptation: filter rare ASVs before densifying (raw ASV table is
+# far larger than the pre-clustered OTU table used in the original analysis)
+counts_sub  <- merged$counts[, ix]
+keep_asvs   <- which(Matrix::rowSums(counts_sub > 0) / ncol(counts_sub) >= 0.05)
+counts_filt <- as.matrix(counts_sub[keep_asvs, ])
+
+spear_cor  <- cor(counts_filt, method = "spearman")
+spear_dist <- (-1 * spear_cor + 1) / 2
+
+pcoa_res <- pcoa(spear_dist, correction = "cailliez")
+
+ramp <- colorRampPalette(rev(c(
+  "#D73027", "#FC8D59", "#FEE090", "#FFFFBF", "#E0F3F8", "#91BFDB", "#4575B4"
+)))
+
+yday_range <- min(yday[ix], na.rm = TRUE):max(yday[ix], na.rm = TRUE)
+color_yday <- ramp(length(yday_range))
+yday_index <- yday - min(yday_range) + 1
+
+lat_range <- floor(min(lat[ix], na.rm = TRUE)):ceiling(max(lat[ix], na.rm = TRUE))
+color_lat <- ramp(length(lat_range))
+lat_index <- round(lat) - min(lat_range) + 1
 
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
 ylab <- paste0("PC2 (", round(pcoa_res$values$Rel_corr_eig[2] * 100), "%)")
 
-png(fig("pcoa.png"), width = 1000, height = 500)
-layout(matrix(c(1, 2, 3, 3), 2, 2, byrow = TRUE))
-par(mar = c(5, 5, 2, 1), xpd = TRUE, cex.axis = 1)
+png(fig("pcoa.png"), width = 900, height = 900)
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 6), xpd = TRUE)
 
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
-     pch = pch, col = "white", bg = "white", xlab = xlab, ylab = ylab,
-     main = "Malaise trap")
-points(pcoa_res$vectors[DS_malaise, 1], pcoa_res$vectors[DS_malaise, 2],
-       pch = pch[DS_malaise], col = "black",
-       bg = color_habitat[DS_malaise], cex = 1.4)
+     col = "black", bg = color_yday[yday_index[ix]], pch = 21, cex = 1,
+     xlab = xlab, ylab = ylab, main = "Colour by year-day")
+legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
+       col = color_yday[round(seq(1, length(color_yday), length.out = 5))],
+       legend = yday_range[round(seq(1, length(yday_range), length.out = 5))])
 
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
-     pch = pch, col = "white", bg = "white", xlab = xlab, ylab = ylab,
-     main = "Soil/litter")
-points(pcoa_res$vectors[DS_soillitter, 1], pcoa_res$vectors[DS_soillitter, 2],
-       pch = pch[DS_soillitter], col = "black",
-       bg = color_habitat[DS_soillitter], cex = 1.4)
+     col = "black", bg = color_habitat[ix], pch = 21, cex = 1,
+     xlab = xlab, ylab = ylab, main = "Colour by habitat")
+legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
+       col = habitat_cols, legend = names(habitat_cols))
 
-plot.new()
-legend("center", bty = "n", legend = names(habitat_cols),
-       pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.1,
-       title = "Habitat")
+plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
+     col = "black", bg = color_lat[lat_index[ix]], pch = 21, cex = 1,
+     xlab = xlab, ylab = ylab, main = "Colour by latitude")
+legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
+       col = color_lat[round(seq(1, length(color_lat), length.out = 5))],
+       legend = lat_range[round(seq(1, length(lat_range), length.out = 5))])
+
+barplot(pcoa_res$values$Rel_corr_eig[1:20],
+        ylab = "Variance explained", xlab = "Principal coordinate (PC)")
 dev.off()
 
 # ── Tutorial 5: Barplots ──────────────────────────────────────────────────────
@@ -135,7 +135,7 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
   ))
   habitats <- names(habitat_cols)
   par(mfrow = c(length(habitats), 1), mar = c(2, 3, 2, 14), xpd = TRUE)
-  ok <- sort(rowMeans(cladecounts$norm[[rank]]),
+  ok <- sort(Matrix::rowMeans(cladecounts$norm[[rank]]),
              index.return = TRUE, decreasing = TRUE)$ix[1:top_x]
   if (size_taxa == -1) { size_taxa <- min(1.5, 8 / length(ok)) }
   for (hab in habitats) {
@@ -144,7 +144,7 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
                                     nrow = nrow(cladecounts$norm[[rank]]))
     for (j in 1:12) {
       ix2 <- intersect(ix, which(month == j))
-      if (length(ix2) > 1) monthly_averages_matr[, j] <- rowMeans(cladecounts$norm[[rank]][, ix2])
+      if (length(ix2) > 1) monthly_averages_matr[, j] <- Matrix::rowMeans(cladecounts$norm[[rank]][, ix2])
       if (length(ix2) == 1) monthly_averages_matr[, j] <- cladecounts$norm[[rank]][, ix2]
       if (length(ix2) == 0) monthly_averages_matr[, j] <- 0
     }
@@ -158,101 +158,6 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
 
 png(fig("barplots.png"), width = 800, height = 1400)
 plot_barplots(rank = 4, top_x = 8)
-dev.off()
-
-# ── Tutorial 6: Random Forest ─────────────────────────────────────────────────
-
-y  <- as.factor(habitat)
-ok <- which(!is.na(y))
-y  <- y[ok]
-
-X_sparse <- Matrix::t(norm_sparse)[ok, , drop = FALSE]
-keep     <- which(Matrix::colSums(X_sparse > 0) / nrow(X_sparse) >= 0.1)
-X        <- as.matrix(X_sparse[, keep, drop = FALSE])
-
-set.seed(1)
-n        <- nrow(X)
-train_ix <- sample(seq_len(n), size = round(0.8 * n))
-test_ix  <- setdiff(seq_len(n), train_ix)
-
-X_train <- X[train_ix, , drop = FALSE];  y_train <- y[train_ix]
-X_test  <- X[test_ix,  , drop = FALSE];  y_test  <- y[test_ix]
-
-rf   <- ranger(x = X_train, y = y_train, num.trees = 500,
-               importance = "permutation")
-pred <- predict(rf, data = X_test)$predictions
-cat("Accuracy:", round(mean(pred == y_test) * 100), "%\n")
-
-conf      <- table(Predicted = pred, Observed = y_test)
-n_classes <- nlevels(y)
-
-png(fig("rf_confusion.png"), width = 650, height = 600)
-par(mar = c(9, 9, 3, 2))
-image(seq_len(n_classes), seq_len(n_classes), t(conf[n_classes:1, ]),
-      axes = FALSE, xlab = "Observed", ylab = "Predicted",
-      col  = colorRampPalette(c("white", "#2d6a4f"))(20),
-      main = paste0("Accuracy: ", round(mean(pred == y_test) * 100), "%"))
-axis(1, at = seq_len(n_classes), labels = colnames(conf), las = 2, cex.axis = 0.9)
-axis(2, at = seq_len(n_classes), labels = rev(rownames(conf)), las = 1, cex.axis = 0.9)
-for (i in seq_len(nrow(conf)))
-  for (j in seq_len(ncol(conf)))
-    text(j, n_classes + 1 - i, conf[i, j], cex = 1.1)
-dev.off()
-
-imp <- sort(rf$variable.importance, decreasing = TRUE)
-png(fig("rf_importance.png"), width = 700, height = 450)
-par(mar = c(5, 5, 2, 2))
-plot(imp, pch = 16, col = "#2d6a4f",
-     xlab = "ASV rank", ylab = "Permutation importance")
-dev.off()
-
-# ── Tutorial 7: Air vs. ground ────────────────────────────────────────────────
-
-bray_dist2 <- as.matrix(vegdist(t(cladecounts$norm$genus), method = "bray"))
-pcoa_res2  <- pcoa(bray_dist2, correction = "cailliez")
-
-xlab2 <- paste0("PC1 (", round(pcoa_res2$values$Rel_corr_eig[1] * 100), "%)")
-ylab2 <- paste0("PC2 (", round(pcoa_res2$values$Rel_corr_eig[2] * 100), "%)")
-
-png(fig("airvsground_pcoa.png"), width = 1000, height = 500)
-layout(matrix(c(1, 2, 3, 3), 2, 2, byrow = TRUE))
-par(mar = c(5, 5, 2, 1), xpd = TRUE, cex.axis = 1)
-
-plot(pcoa_res2$vectors[, 1], pcoa_res2$vectors[, 2],
-     pch = pch, col = "white", bg = "white",
-     xlab = xlab2, ylab = ylab2, main = "Malaise trap")
-points(pcoa_res2$vectors[DS_malaise, 1], pcoa_res2$vectors[DS_malaise, 2],
-       pch = pch[DS_malaise], col = "black",
-       bg = color_habitat[DS_malaise], cex = 1.4)
-
-plot(pcoa_res2$vectors[, 1], pcoa_res2$vectors[, 2],
-     pch = pch, col = "white", bg = "white",
-     xlab = xlab2, ylab = ylab2, main = "Soil/litter")
-points(pcoa_res2$vectors[DS_soillitter, 1], pcoa_res2$vectors[DS_soillitter, 2],
-       pch = pch[DS_soillitter], col = "black",
-       bg = color_habitat[DS_soillitter], cex = 1.4)
-
-plot.new()
-legend("center", bty = "n", legend = names(habitat_cols),
-       pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.1,
-       title = "Habitat")
-dev.off()
-
-orders          <- rownames(cladecounts$norm$order)
-mean_malaise    <- rowMeans(cladecounts$norm$order[, DS_malaise,    drop = FALSE])
-mean_soillitter <- rowMeans(cladecounts$norm$order[, DS_soillitter, drop = FALSE])
-top             <- order(pmax(mean_malaise, mean_soillitter), decreasing = TRUE)[1:10]
-
-png(fig("airvsground_orders.png"), width = 700, height = 500)
-par(mfrow = c(1, 1), mar = c(5, 10, 2, 2))
-barplot(rbind(mean_malaise[top], mean_soillitter[top]),
-        beside = TRUE, horiz = TRUE, names.arg = orders[top],
-        col = c("#4895ef", "#d4a017"), las = 1,
-        xlab = "Mean relative abundance",
-        main = "Top orders by sampling method")
-legend("bottomright", bty = "n",
-       legend = c("Malaise trap", "Soil/litter"),
-       fill = c("#4895ef", "#d4a017"))
 dev.off()
 
 message("Done — figures saved to ", figure_dir)

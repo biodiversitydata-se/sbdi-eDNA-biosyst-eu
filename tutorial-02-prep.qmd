@@ -7,9 +7,9 @@ format:
 
 *Load, merge and aggregate ASV portal data into a format suitable for downstream analyses.*
 
-### Load the datasets
+### Load the dataset(s)
 
-Load the two COI datasets using the `data_path` object defined in the [previous section](tutorial-01-setup.qmd):
+Load the COI dataset(s) present in the `data_path` folder defined in the [previous section](tutorial-01-setup.qmd) — this works the same whether there is one dataset or several:
 
 ```r
 loaded <- load_data(data_path)
@@ -23,7 +23,7 @@ This reads datasets into the `loaded` object, which you can inspect using the ma
 - `datasets`: dataset-level metadata
 - `emof`: dataset-specific *extended measurement or fact* contextual data
 
-Sparse matrices (`dgCMatrix`) are used to reduce memory usage for count data, while tabular structures (`data.table`) are used for metadata. To see dataset sizes, inspect the elements in `counts`, where sizes are shown as matrix dimensions (e.g. `IBA_CO1_ethanol_2019_SE`: `dgCMatrix [X x 200]`, corresponding to the number of ASVs × samples).
+Sparse matrices (`dgCMatrix`) are used to reduce memory usage for count data, while tabular structures (`data.table`) are used for metadata. To see dataset sizes, inspect the elements in `counts`, where sizes are shown as matrix dimensions (e.g. `dgCMatrix [X x Y]`, corresponding to the number of ASVs × samples).
 
 To see the full function documentation for `load_data`:
 
@@ -33,9 +33,9 @@ To see the full function documentation for `load_data`:
 
 ---
 
-### Merge the datasets
+### Merge the dataset(s)
 
-The two datasets share the same 200 sampling sites but use different collection methods: Malaise traps catch flying and actively moving insects, while soil/litter extraction targets ground-dwelling invertebrates. We merge them to analyse both together:
+`merge_data()` combines whatever datasets were loaded above into a single set of objects. With a single dataset this is a no-op merge; with several, it combines them so they can be analysed together:
 
 ```r
 merged <- merge_data(loaded)
