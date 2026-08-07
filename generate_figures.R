@@ -112,6 +112,11 @@ lat_range <- floor(min(lat[ix], na.rm = TRUE)):ceiling(max(lat[ix], na.rm = TRUE
 color_lat <- ramp(length(lat_range))
 lat_index <- round(lat) - min(lat_range) + 1
 
+# Fixed step (as in the original analysis: 50 days / 2 degrees) rather than
+# a fixed count, so legend ticks land on round numbers
+yday_ticks <- seq(min(yday_range), max(yday_range), by = 50)
+lat_ticks  <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
+
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
 ylab <- paste0("PC2 (", round(pcoa_res$values$Rel_corr_eig[2] * 100), "%)")
 
@@ -122,8 +127,8 @@ plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = color_yday[yday_index[ix]], pch = 21, cex = 1,
      xlab = xlab, ylab = ylab, main = "Colour by year-day")
 legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-       col = color_yday[round(seq(1, length(color_yday), length.out = 5))],
-       legend = yday_range[round(seq(1, length(yday_range), length.out = 5))])
+       col = color_yday[yday_ticks - min(yday_range) + 1],
+       legend = yday_ticks)
 
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = color_habitat[ix], pch = 21, cex = 1,
@@ -135,8 +140,8 @@ plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = color_lat[lat_index[ix]], pch = 21, cex = 1,
      xlab = xlab, ylab = ylab, main = "Colour by latitude")
 legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-       col = color_lat[round(seq(1, length(color_lat), length.out = 5))],
-       legend = lat_range[round(seq(1, length(lat_range), length.out = 5))])
+       col = color_lat[lat_ticks - min(lat_range) + 1],
+       legend = lat_ticks)
 
 barplot(pcoa_res$values$Rel_corr_eig[1:20],
         ylab = "Variance explained", xlab = "Principal coordinate (PC)")
