@@ -78,18 +78,28 @@ color_habitat <- habitat_cols[habitat]
 
 ### Map samples
 
-We plot all sites on a map of Sweden, with point colour indicating habitat type. This does not distinguish between datasets — see [step 4](tutorial-04-pcoa.qmd) for a check of whether community structure differs between them:
+We plot all sites on a map of Sweden, with point colour indicating habitat type. This does not distinguish between datasets — see [step 4](tutorial-04-pcoa.qmd) for a check of whether community structure differs between them.
+
+Many samples share the same, or a nearby, physical site (repeated visits to the same trap over the season), so plotting raw coordinates hides most of them behind one another. A small amount of random jitter spreads out samples from the same site into a visible cluster instead of a single point:
 
 ```r
 newmap <- rworldmap::getMap(resolution = "low")
 
+set.seed(1)
+lon_jit <- lon + rnorm(length(lon), 0, 0.03)
+lat_jit <- lat + rnorm(length(lat), 0, 0.03)
+
 par(mar = c(2, 2, 3, 1))
 plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1, main = "Sampling sites")
-points(lon, lat, pch = 21, col = "black", bg = color_habitat, cex = 1.8)
+points(lon_jit, lat_jit, pch = 21, col = "black", bg = color_habitat, cex = 1.8)
 legend("bottomleft", bty = "n", legend = names(habitat_cols),
        pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
        title = "Habitat")
 ```
+
+::: {.callout-note}
+**Spatial autocorrelation.** Many sample sites are close together (within ~10-15 km), so nearby samples are likely to share a regional species pool independent of habitat — beyond the scope of this tutorial, but worth keeping in mind before drawing strong conclusions about habitat effects from the PCoA in the next step.
+:::
 
 *Expected result (click to enlarge):*
 

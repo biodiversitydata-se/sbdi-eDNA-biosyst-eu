@@ -7,7 +7,7 @@ format:
 
 *Analyse community composition using a Spearman correlation-based dissimilarity and visualise patterns with a Principal Coordinates Analysis (PCoA), following the approach used in earlier IBA analyses of this data.*
 
-This step closely follows the original analysis code, with two adaptations needed because `asvoccur` works from the raw, un-clustered ASV table (hundreds of thousands of rows) rather than a pre-clustered OTU table: an added ASV-prevalence filter (noted below), and reading counts from `merged$counts` instead of a pre-loaded matrix.
+This step closely follows the original analysis code, with one adaptation needed because `asvoccur` exposes the raw, un-clustered ASV table rather than a pre-clustered OTU table directly: we aggregate ASVs to clusters ourselves first (below), using the same cluster assignments the original analysis used.
 
 ### Filter low-depth samples
 
@@ -22,14 +22,28 @@ length(ix)
 
 `100000` is the threshold used in the original analysis — check the `summary()` output above and adjust it if it excludes far more or fewer samples than expected for your dataset.
 
-### Filter rare ASVs
+### Aggregate ASVs to clusters
 
-*Necessary adaptation:* the full ASV table can have several hundred thousand rows, which makes both `cor()` and the distance matrix step below prohibitively slow/memory-heavy without first reducing it. We keep ASVs present in ≥5% of the retained samples:
+*Necessary adaptation:* `merged$counts` is indexed by individual ASV (hundreds of thousands of rows), whereas the original analysis worked from an already-clustered OTU table. The ASV portal data includes the same cluster assignments, in the `associatedSequences` column of each dataset's ASV table (not carried through by `merge_data()`, so we read it from `loaded` directly) — aggregating by these gives an equivalent clustered count matrix:
 
 ```r
-counts_sub  <- merged$counts[, ix]
-keep_asvs   <- which(Matrix::rowSums(counts_sub > 0) / ncol(counts_sub) >= 0.05)
-counts_filt <- as.matrix(counts_sub[keep_asvs, ])
+cluster_lookup <- unique(data.table::rbindlist(lapply(loaded$asvs, function(x)
+  x[, .(taxonID, associatedSequences)])))
+cluster_id <- cluster_lookup$associatedSequences[match(rownames(merged$counts), cluster_lookup$taxonID)]
+
+clevels <- unique(cluster_id)
+cidx    <- match(cluster_id, clevels)
+G <- Matrix::sparseMatrix(i = cidx, j = seq_along(cluster_id), x = 1,
+                           dims = c(length(clevels), length(cluster_id)))
+cluster_counts <- G %*% merged$counts
+rownames(cluster_counts) <- clevels
+nrow(cluster_counts)  # a fraction of the original ASV count
+```
+
+This reduces the row count enough on its own (e.g. ~7-fold for the homogenate dataset) that no further filtering is needed before densifying:
+
+```r
+counts_filt <- as.matrix(cluster_counts[, ix])
 ```
 
 ### Calculate a Spearman-based dissimilarity

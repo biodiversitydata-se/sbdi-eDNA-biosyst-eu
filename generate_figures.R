@@ -21,7 +21,7 @@ fig <- function(name) file.path(figure_dir, name)
 
 loaded      <- load_data(data_path)
 merged      <- merge_data(loaded)
-merged_df   <- convert_to_df(merged)
+merged_df   <- convert_to_df(merged, convert_counts = TRUE, max_cells = 1e10)
 cladecounts <- sum_by_clade(merged$counts, merged$asvs)
 
 # ── Tutorial 3: Map ───────────────────────────────────────────────────────────
@@ -56,10 +56,16 @@ color_habitat <- habitat_cols[habitat]
 
 newmap <- rworldmap::getMap(resolution = "low")
 
+# Many samples share the same/nearby site (repeated visits); jitter spreads
+# them into a visible cluster instead of hiding them behind one point
+set.seed(1)
+lon_jit <- lon + rnorm(length(lon), 0, 0.03)
+lat_jit <- lat + rnorm(length(lat), 0, 0.03)
+
 png(fig("map.png"), width = 700, height = 700)
 par(mar = c(2, 2, 3, 1))
 plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1, main = "Sampling sites")
-points(lon, lat, pch = 21, col = "black", bg = color_habitat, cex = 1.8)
+points(lon_jit, lat_jit, pch = 21, col = "black", bg = color_habitat, cex = 1.8)
 legend("bottomleft", bty = "n", legend = names(habitat_cols),
        pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
        title = "Habitat")
@@ -72,11 +78,22 @@ print(summary(sample_depth))
 ix <- which(sample_depth >= 100000)
 message(length(ix), " of ", length(sample_depth), " samples retained (depth >= 100000)")
 
-# Necessary adaptation: filter rare ASVs before densifying (raw ASV table is
-# far larger than the pre-clustered OTU table used in the original analysis)
-counts_sub  <- merged$counts[, ix]
-keep_asvs   <- which(Matrix::rowSums(counts_sub > 0) / ncol(counts_sub) >= 0.05)
-counts_filt <- as.matrix(counts_sub[keep_asvs, ])
+# Necessary adaptation: aggregate ASVs to clusters using the same cluster
+# assignments as the original analysis (associatedSequences isn't carried
+# through merge_data(), so read it from loaded$asvs directly)
+cluster_lookup <- unique(data.table::rbindlist(lapply(loaded$asvs, function(x)
+  x[, .(taxonID, associatedSequences)])))
+cluster_id <- cluster_lookup$associatedSequences[match(rownames(merged$counts), cluster_lookup$taxonID)]
+
+clevels <- unique(cluster_id)
+cidx    <- match(cluster_id, clevels)
+G <- Matrix::sparseMatrix(i = cidx, j = seq_along(cluster_id), x = 1,
+                           dims = c(length(clevels), length(cluster_id)))
+cluster_counts <- G %*% merged$counts
+rownames(cluster_counts) <- clevels
+message(nrow(cluster_counts), " clusters (from ", nrow(merged$counts), " ASVs)")
+
+counts_filt <- as.matrix(cluster_counts[, ix])
 
 spear_cor  <- cor(counts_filt, method = "spearman")
 spear_dist <- (-1 * spear_cor + 1) / 2

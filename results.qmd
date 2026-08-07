@@ -19,7 +19,7 @@ format:
 
 ### Community structure (PCoA)
 
-*Principal Coordinates Analysis (Spearman-based dissimilarity) of ASV-level community composition, coloured by year-day, habitat and latitude, plus variance explained per axis.*
+*Principal Coordinates Analysis (Spearman-based dissimilarity) of cluster-level community composition, coloured by year-day, habitat and latitude, plus variance explained per axis.*
 
 ![](figures/pcoa.png)
 
