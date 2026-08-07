@@ -77,10 +77,10 @@ color_lat <- ramp(length(lat_range))
 lat_index <- round(lat) - min(lat_range) + 1
 ```
 
-Legend tick marks use a fixed step (50 days / 2 degrees, as in the original analysis) rather than a fixed count, so they land on round numbers:
+Legend tick marks use a fixed step rather than a fixed count, so they land on round numbers. Latitude uses the same 2-degree step as the original analysis; year-day uses a 20-day step rather than the original's 50 — our samples span a single ~170-day season rather than a full year, and only cover 34 distinct collection days within it, so a 50-day step would leave the legend too sparse to be useful:
 
 ```r
-yday_ticks <- seq(min(yday_range), max(yday_range), by = 50)
+yday_ticks <- seq(min(yday_range), max(yday_range), by = 20)
 lat_ticks  <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
 ```
 

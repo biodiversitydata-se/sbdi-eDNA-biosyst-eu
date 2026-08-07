@@ -112,9 +112,10 @@ lat_range <- floor(min(lat[ix], na.rm = TRUE)):ceiling(max(lat[ix], na.rm = TRUE
 color_lat <- ramp(length(lat_range))
 lat_index <- round(lat) - min(lat_range) + 1
 
-# Fixed step (as in the original analysis: 50 days / 2 degrees) rather than
-# a fixed count, so legend ticks land on round numbers
-yday_ticks <- seq(min(yday_range), max(yday_range), by = 50)
+# Fixed step rather than a fixed count, so legend ticks land on round
+# numbers. Latitude matches the original analysis's 2-degree step; year-day
+# uses 20 days (vs. the original's 50) since our season is much narrower
+yday_ticks <- seq(min(yday_range), max(yday_range), by = 20)
 lat_ticks  <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
 
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
