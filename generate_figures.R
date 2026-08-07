@@ -21,7 +21,7 @@ fig <- function(name) file.path(figure_dir, name)
 
 loaded      <- load_data(data_path)
 merged      <- merge_data(loaded)
-merged_df   <- convert_to_df(merged, convert_counts = TRUE, max_cells = 1e10)
+merged_df   <- convert_to_df(merged)
 cladecounts <- sum_by_clade(merged$counts, merged$asvs)
 
 # ── Tutorial 3: Map ───────────────────────────────────────────────────────────
