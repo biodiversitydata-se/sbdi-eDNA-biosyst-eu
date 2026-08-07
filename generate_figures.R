@@ -115,11 +115,14 @@ lat_range <- floor(min(lat[ix], na.rm = TRUE)):ceiling(max(lat[ix], na.rm = TRUE
 color_lat <- ramp(length(lat_range))
 lat_index <- round(lat) - min(lat_range) + 1
 
-# Fixed step rather than a fixed count, so legend ticks land on round
-# numbers. Latitude matches the original analysis's 2-degree step; year-day
-# uses 20 days (vs. the original's 50) since our season is much narrower
-yday_ticks <- seq(min(yday_range), max(yday_range), by = 20)
-lat_ticks  <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
+# Latitude legend matches the original analysis's fixed 2-degree step.
+# Year-day uses month names instead of a numeric step: point colour still
+# varies continuously by day, but month starts are easier to read and
+# adapt automatically to whatever period the data covers
+lat_ticks <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
+
+month_ticks  <- sort(tapply(yday[ix], month[ix], min))
+month_labels <- month.abb[as.integer(names(month_ticks))]
 
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
 ylab <- paste0("PC2 (", round(pcoa_res$values$Rel_corr_eig[2] * 100), "%)")
@@ -131,8 +134,8 @@ plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = color_yday[yday_index[ix]], pch = 21, cex = 1,
      xlab = xlab, ylab = ylab, main = "Colour by year-day")
 legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-       col = color_yday[yday_ticks - min(yday_range) + 1],
-       legend = yday_ticks)
+       col = color_yday[month_ticks - min(yday_range) + 1],
+       legend = month_labels)
 
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = color_habitat[ix], pch = 21, cex = 1,

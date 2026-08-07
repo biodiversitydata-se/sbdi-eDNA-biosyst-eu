@@ -81,11 +81,13 @@ color_lat <- ramp(length(lat_range))
 lat_index <- round(lat) - min(lat_range) + 1
 ```
 
-Legend tick marks use a fixed step rather than a fixed count, so they land on round numbers. Latitude uses the same 2-degree step as the original analysis; year-day uses a 20-day step rather than the original's 50 — our samples span a single ~170-day season rather than a full year, and only cover 34 distinct collection days within it, so a 50-day step would leave the legend too sparse to be useful:
+Latitude legend ticks use the same fixed 2-degree step as the original analysis. Year-day uses month names instead — point colour still varies continuously by day (so within-month variation is still visible), but a numeric day-of-year legend is harder to read than month names, and picking month starts naturally adapts to whatever period the data actually covers instead of assuming a step size:
 
 ```r
-yday_ticks <- seq(min(yday_range), max(yday_range), by = 20)
-lat_ticks  <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
+lat_ticks <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
+
+month_ticks  <- sort(tapply(yday[ix], month[ix], min))  # year-day of each month's first sample
+month_labels <- month.abb[as.integer(names(month_ticks))]
 ```
 
 ### Plot PCoA results
@@ -103,8 +105,8 @@ plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = color_yday[yday_index[ix]], pch = 21, cex = 1,
      xlab = xlab, ylab = ylab, main = "Colour by year-day")
 legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-       col = color_yday[yday_ticks - min(yday_range) + 1],
-       legend = yday_ticks)
+       col = color_yday[month_ticks - min(yday_range) + 1],
+       legend = month_labels)
 
 # Panel: colour by habitat
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
