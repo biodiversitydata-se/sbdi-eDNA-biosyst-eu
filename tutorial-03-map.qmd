@@ -15,7 +15,7 @@ Core sample-level metadata is available in `merged_df$events`:
 colnames(merged_df$events)
 ```
 
-Samples are ordered consistently across tables, which makes it straightforward to link sequence data with contextual data. Thus, `rownames(merged_df$events)`, `rownames(merged_df$emof)` and `colnames(merged$counts)` refer to the same samples.
+Samples are ordered consistently across tables — `rownames(merged_df$events)`, `rownames(merged_df$emof)` and `colnames(merged$counts)` all refer to the same samples.
 
 ---
 
@@ -84,7 +84,7 @@ length(ix)
 
 `100000` is a reasonable depth threshold here — check the `summary()` output above and adjust it if it excludes far more or fewer samples than expected for your dataset.
 
-The two datasets differ hugely in size (homogenate: ~860 samples; lysate: ~4,550), so combining them as-is would let lysate dominate the analysis purely by sample count, and would make PCoA's eigendecomposition slow (O(n³) in the number of samples). We downsample lysate down to homogenate's size instead, keeping the samples balanced 50/50:
+The two datasets differ hugely in size (homogenate: ~860 samples; lysate: ~4,550) — left as-is, lysate would dominate the analysis by sample count alone, and slow down PCoA considerably. We downsample lysate to homogenate's size instead, keeping the two balanced 50/50:
 
 ```r
 dataset_id <- factor(sub(":.*", "", colnames(merged$counts)))
@@ -119,7 +119,7 @@ legend("bottomleft", bty = "o", bg = "white", legend = names(habitat_cols),
        title = "Habitat")
 ```
 
-Many samples share the same, or a nearby, physical site (repeated visits to the same trap over the season), so plotting raw coordinates hides most of them behind one another. The small amount of random jitter above spreads samples from the same site into a visible cluster instead of a single point.
+Many samples share the same, or a nearby, physical site (repeated visits over the season) — the small amount of jitter above spreads them into a visible cluster instead of hiding them behind a single point.
 
 ::: {.callout-note}
 **Spatial autocorrelation.** Many sample sites are close together (within ~10-15 km), so nearby samples are likely to share a regional species pool independent of habitat — beyond the scope of this tutorial, but worth keeping in mind before drawing strong conclusions about habitat effects from the PCoA in the next step.

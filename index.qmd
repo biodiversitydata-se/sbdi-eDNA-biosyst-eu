@@ -10,7 +10,7 @@ Welcome to the **Exploring eDNA in SBDI** workshop at
 
 ## Description
 
-This workshop will demonstrate how environmental DNA (eDNA) / metabarcoding data can be accessed, processed, and analysed within the [Swedish Biodiversity Data Infrastructure (SBDI)](https://biodiversitydata.se/){target="_blank"}. We will show how to download eDNA data, use our R package to unpack, merge, and aggregate datasets, and then explore arthropod biodiversity patterns across habitat types in Sweden using COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"}. The session will also introduce SBDI resources for data submission, processing, and integration with GBIF.
+This workshop demonstrates how eDNA/metabarcoding data can be accessed, processed and analysed within the [Swedish Biodiversity Data Infrastructure (SBDI)](https://biodiversitydata.se/){target="_blank"} — from data submission and processing through to exploring arthropod biodiversity patterns across Swedish habitat types, using COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"}.
 
 ## Expected outcomes
 
