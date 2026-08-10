@@ -28,11 +28,9 @@ All required packages are pre-installed in the workshop environment. Load them a
 
 ```r
 library(asvoccur)
-library(vegan)
 library(ape)
 library(rworldmap)
 library(lubridate)
-library(data.table)
 ```
 
 ### Check access to example data {#check-access}
@@ -55,7 +53,6 @@ You will need to install:
 3. the following R packages:
    - `remotes`
    - `asvoccur`
-   - `vegan`
    - `ape`
    - `rworldmap`
    - `lubridate`
@@ -67,7 +64,6 @@ To install and load the required R packages:
 # Install from CRAN
 install.packages(c(
   "remotes",
-  "vegan",
   "ape",
   "rworldmap",
   "lubridate",
@@ -79,11 +75,9 @@ remotes::install_github("biodiversitydata-se/asvoccur")
 
 # Load
 library(asvoccur)
-library(vegan)
 library(ape)
 library(rworldmap)
 library(lubridate)
-library(data.table)
 
 # Confirm version
 packageVersion("asvoccur")  # Should say 1.1.1

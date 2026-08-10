@@ -2,19 +2,17 @@
 # Figures are saved to the figures/ folder in the website repo.
 #
 # data_path should point at a folder with only IBA_CO1_homogenate_2019_SE.zip -
-# this produces the main, colleague-validated figures (map.png, pcoa.png,
-# barplots.png). data_path_combined additionally includes
+# this produces the main, colleague-validated figures (3_map.png, 4_pcoa.png,
+# 5_barplots.png). data_path_combined additionally includes
 # IBA_CO1_lysate_2019_SE.zip, and is used only for the step 4 bonus figure
-# (pcoa_combined.png) via its own independent load_data()/merge_data() call -
-# it is kept separate so the main pcoa.png stays fast and matches the
+# (4_pcoa_combined.png) via its own independent load_data()/merge_data() call -
+# it is kept separate so the main 4_pcoa.png stays fast and matches the
 # validated single-dataset result.
 
 library(asvoccur)
-library(vegan)
 library(ape)
 library(rworldmap)
 library(lubridate)
-library(data.table)
 
 data_path          <- "~/Downloads/IBA/homogenate_only"
 data_path_combined <- "~/Downloads/IBA/lys_hom"
@@ -75,11 +73,11 @@ set.seed(1)
 lon_jit <- lon + rnorm(length(lon), 0, 0.03)
 lat_jit <- lat + rnorm(length(lat), 0, 0.03)
 
-png(fig("map.png"), width = 700, height = 700)
+png(fig("3_map.png"), width = 700, height = 700)
 par(mar = c(2, 2, 3, 1))
 plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1, main = "Sampling sites")
 points(lon_jit, lat_jit, pch = 21, col = "black", bg = color_habitat, cex = 1.8)
-legend("bottomleft", bty = "n", legend = names(habitat_cols),
+legend("bottomleft", bty = "o", bg = "white", legend = names(habitat_cols),
        pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
        title = "Habitat")
 dev.off()
@@ -140,7 +138,7 @@ month_labels <- month.abb[as.integer(names(month_ticks))]
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
 ylab <- paste0("PC2 (", round(pcoa_res$values$Rel_corr_eig[2] * 100), "%)")
 
-png(fig("pcoa.png"), width = 900, height = 900)
+png(fig("4_pcoa.png"), width = 900, height = 900)
 par(mfrow = c(2, 2), mar = c(4, 4, 2, 6), xpd = TRUE)
 
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
@@ -169,7 +167,7 @@ dev.off()
 
 # ── Tutorial 4 bonus: combining datasets (extraction method) ─────────────────
 # Independent pipeline over data_path_combined (homogenate + lysate), kept
-# separate from the main pipeline above so pcoa.png stays fast and matches
+# separate from the main pipeline above so 4_pcoa.png stays fast and matches
 # the validated single-dataset result. Lysate is downsampled to homogenate's
 # size, since it alone has 4,000+ samples - too many for PCoA to handle
 # quickly, and enough to dominate the plot if left unbalanced.
@@ -234,7 +232,7 @@ if (dir.exists(data_path_combined)) {
   xlab_c <- paste0("PC1 (", round(pcoa_res_c$values$Rel_corr_eig[1] * 100), "%)")
   ylab_c <- paste0("PC2 (", round(pcoa_res_c$values$Rel_corr_eig[2] * 100), "%)")
 
-  png(fig("pcoa_combined.png"), width = 900, height = 900)
+  png(fig("4_pcoa_combined.png"), width = 900, height = 900)
   par(mfrow = c(2, 2), mar = c(4, 4, 2, 6), xpd = TRUE)
 
   plot(pcoa_res_c$vectors[, 1], pcoa_res_c$vectors[, 2],
@@ -296,7 +294,7 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
   }
 }
 
-png(fig("barplots.png"), width = 800, height = 1400)
+png(fig("5_barplots.png"), width = 800, height = 1400)
 plot_barplots(rank = 4, top_x = 8)
 dev.off()
 

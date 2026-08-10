@@ -89,7 +89,7 @@ lat_jit <- lat + rnorm(length(lat), 0, 0.03)
 par(mar = c(2, 2, 3, 1))
 plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1, main = "Sampling sites")
 points(lon_jit, lat_jit, pch = 21, col = "black", bg = color_habitat, cex = 1.8)
-legend("bottomleft", bty = "n", legend = names(habitat_cols),
+legend("bottomleft", bty = "o", bg = "white", legend = names(habitat_cols),
        pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
        title = "Habitat")
 ```
@@ -100,7 +100,7 @@ legend("bottomleft", bty = "n", legend = names(habitat_cols),
 
 *Expected result (click to enlarge):*
 
-[![](figures/map.png)](figures/map.png){target="_blank"}
+[![](figures/3_map.png)](figures/3_map.png){target="_blank"}
 
 ---
 

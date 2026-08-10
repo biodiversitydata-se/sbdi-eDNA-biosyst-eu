@@ -130,7 +130,7 @@ barplot(pcoa_res$values$Rel_corr_eig[1:20],
 
 *Expected result (click to enlarge):*
 
-[![](figures/pcoa.png)](figures/pcoa.png){target="_blank"}
+[![](figures/4_pcoa.png)](figures/4_pcoa.png){target="_blank"}
 
 ---
 
@@ -187,7 +187,7 @@ This bonus takes a couple of minutes to run, mostly for the PCoA step — feel f
 
 *Expected result (click to enlarge):*
 
-[![](figures/pcoa_combined.png)](figures/pcoa_combined.png){target="_blank"}
+[![](figures/4_pcoa_combined.png)](figures/4_pcoa_combined.png){target="_blank"}
 
 Habitat, year-day and latitude still separate out much as before; extraction method does not — homogenate and lysate points are thoroughly mixed. A formal test (PERMANOVA) confirms this: extraction method explains only ~0.3% of the variance in community composition, versus ~5-6% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do in [step 5](tutorial-05-barplots.qmd), is reasonable.
 

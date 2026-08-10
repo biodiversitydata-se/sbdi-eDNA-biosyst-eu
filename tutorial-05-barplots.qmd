@@ -59,7 +59,7 @@ This creates one stacked barplot row per habitat type, each showing monthly aver
 
 *Expected result (click to enlarge):*
 
-[![](figures/barplots.png)](figures/barplots.png){target="_blank"}
+[![](figures/5_barplots.png)](figures/5_barplots.png){target="_blank"}
 
 ---
 

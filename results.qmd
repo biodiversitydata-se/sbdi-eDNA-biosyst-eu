@@ -13,7 +13,7 @@ format:
 
 *Map of the IBA sampling sites, coloured by habitat type.*
 
-![](figures/map.png)
+![](figures/3_map.png)
 
 ---
 
@@ -21,7 +21,7 @@ format:
 
 *Principal Coordinates Analysis (Spearman-based dissimilarity) of cluster-level community composition, coloured by year-day, habitat and latitude, plus variance explained per axis.*
 
-![](figures/pcoa.png)
+![](figures/4_pcoa.png)
 
 ---
 
@@ -29,7 +29,7 @@ format:
 
 *Same analysis after merging in a second dataset (`IBA_CO1_lysate_2019_SE`, downsampled to match), with a fourth panel coloured by extraction method. Homogenate and lysate samples are thoroughly mixed — extraction method explains only ~0.3% of the variance in community composition (PERMANOVA), compared to ~5-6% for habitat.*
 
-![](figures/pcoa_combined.png)
+![](figures/4_pcoa_combined.png)
 
 ---
 
@@ -37,4 +37,4 @@ format:
 
 *Mean monthly relative abundance of the most common insect orders in each of the six habitat types.*
 
-![](figures/barplots.png)
+![](figures/5_barplots.png)
