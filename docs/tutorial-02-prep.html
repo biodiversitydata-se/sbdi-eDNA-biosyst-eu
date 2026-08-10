@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -74,7 +74,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-6033a600180109c3731f6a886c29932c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -175,8 +175,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p><em>Load, merge and aggregate ASV portal data into a format suitable for downstream analyses.</em></p>
 <section id="load-the-datasets" class="level3">
-<h3 class="anchored" data-anchor-id="load-the-datasets">Load the datasets</h3>
-<p>Load the two COI datasets using the <code>data_path</code> object defined in the <a href="./tutorial-01-setup.html">previous section</a>:</p>
+<h3 class="anchored" data-anchor-id="load-the-datasets">Load the dataset(s)</h3>
+<p>Load the COI dataset(s) present in the <code>data_path</code> folder defined in the <a href="./tutorial-01-setup.html">previous section</a> — this works the same whether there is one dataset or several:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>loaded <span class="ot">&lt;-</span> <span class="fu">load_data</span>(data_path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This reads datasets into the <code>loaded</code> object, which you can inspect using the magnifying glass next to it in the Environment pane. The object is a list organised into data type sub-lists, each containing one table or matrix element per dataset:</p>
 <ul>
@@ -186,14 +186,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><code>datasets</code>: dataset-level metadata</li>
 <li><code>emof</code>: dataset-specific <em>extended measurement or fact</em> contextual data</li>
 </ul>
-<p>Sparse matrices (<code>dgCMatrix</code>) are used to reduce memory usage for count data, while tabular structures (<code>data.table</code>) are used for metadata. To see dataset sizes, inspect the elements in <code>counts</code>, where sizes are shown as matrix dimensions (e.g.&nbsp;<code>IBA_CO1_ethanol_2019_SE</code>: <code>dgCMatrix [X x 200]</code>, corresponding to the number of ASVs × samples).</p>
+<p>Sparse matrices (<code>dgCMatrix</code>) are used to reduce memory usage for count data, while tabular structures (<code>data.table</code>) are used for metadata. To see dataset sizes, inspect the elements in <code>counts</code>, where sizes are shown as matrix dimensions (e.g.&nbsp;<code>dgCMatrix [X x Y]</code>, corresponding to the number of ASVs × samples).</p>
 <p>To see the full function documentation for <code>load_data</code>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>?asvoccur<span class="sc">::</span>load_data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 <section id="merge-the-datasets" class="level3">
-<h3 class="anchored" data-anchor-id="merge-the-datasets">Merge the datasets</h3>
-<p>The two datasets share the same 200 sampling sites but use different collection methods: Malaise traps catch flying and actively moving insects, while soil/litter extraction targets ground-dwelling invertebrates. We merge them to analyse both together:</p>
+<h3 class="anchored" data-anchor-id="merge-the-datasets">Merge the dataset(s)</h3>
+<p><code>merge_data()</code> combines whatever datasets were loaded above into a single set of objects. With a single dataset this is a no-op merge; with several, it combines them so they can be analysed together:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>merged <span class="ot">&lt;-</span> <span class="fu">merge_data</span>(loaded)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The <code>merged</code> object is a list with one combined object per data type (<code>counts</code>, <code>events</code>, <code>asvs</code>, <code>datasets</code>, <code>emof</code>), represented as a sparse matrix for count data and data tables for metadata, as in <code>loaded</code>.</p>
 <hr>
@@ -222,11 +222,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>species</li>
 <li>otu (if available)</li>
 </ul>
-<p>We convert the result to data frame format:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cladecounts_df <span class="ot">&lt;-</span> <span class="fu">convert_to_df</span>(cladecounts)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Both raw counts and normalised counts (relative abundances per sample) are available. For example:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>cladecounts_df<span class="sc">$</span>raw<span class="sc">$</span>phylum[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]  <span class="co"># raw counts at phylum level</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>cladecounts_df<span class="sc">$</span>norm<span class="sc">$</span>order[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]  <span class="co"># relative abundances at order level</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Both raw counts and normalised counts (relative abundances per sample) are available as sparse matrices. Dots represent zeros:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cladecounts<span class="sc">$</span>raw<span class="sc">$</span>phylum[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]  <span class="co"># raw counts at phylum level</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cladecounts<span class="sc">$</span>norm<span class="sc">$</span>order[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]  <span class="co"># relative abundances at order level</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>At this point, the data are ready for exploration and analysis.</p>
 <hr>
 <p><a href="./tutorial-01-setup.html">← Previous</a> · <a href="./tutorial.html">Overview</a> · <a href="./tutorial-03-map.html">Next →</a></p>

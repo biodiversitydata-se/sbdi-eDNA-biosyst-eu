@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -39,7 +39,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-6033a600180109c3731f6a886c29932c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -104,10 +104,6 @@ ul.task-list li input[type="checkbox"] {
     <a class="nav-link" href="./tutorial.html"> 
 <span class="menu-text">Hands-on tutorial</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link active" href="./results.html" aria-current="page"> 
-<span class="menu-text">Results</span></a>
-  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -125,10 +121,9 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#sampling-sites-across-sweden" id="toc-sampling-sites-across-sweden" class="nav-link active" data-scroll-target="#sampling-sites-across-sweden">Sampling sites across Sweden</a></li>
-  <li><a href="#community-structure-pcoa" id="toc-community-structure-pcoa" class="nav-link" data-scroll-target="#community-structure-pcoa">Community structure (PCoA)</a></li>
+  <li><a href="#community-composition-beta-diversity-pcoa" id="toc-community-composition-beta-diversity-pcoa" class="nav-link" data-scroll-target="#community-composition-beta-diversity-pcoa">Community composition — beta diversity (PCoA)</a></li>
+  <li><a href="#within-sample-diversity-alpha-diversity-shannon-index" id="toc-within-sample-diversity-alpha-diversity-shannon-index" class="nav-link" data-scroll-target="#within-sample-diversity-alpha-diversity-shannon-index">Within-sample diversity — alpha diversity (Shannon index)</a></li>
   <li><a href="#taxonomic-composition-by-habitat" id="toc-taxonomic-composition-by-habitat" class="nav-link" data-scroll-target="#taxonomic-composition-by-habitat">Taxonomic composition by habitat</a></li>
-  <li><a href="#random-forest-classifying-habitat-type" id="toc-random-forest-classifying-habitat-type" class="nav-link" data-scroll-target="#random-forest-classifying-habitat-type">Random Forest: classifying habitat type</a></li>
-  <li><a href="#air-vs.-ground-communities" id="toc-air-vs.-ground-communities" class="nav-link" data-scroll-target="#air-vs.-ground-communities">Air vs.&nbsp;ground communities</a></li>
   </ul>
 </nav>
     </div>
@@ -154,38 +149,30 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><em>Example results from running the tutorial on the IBA COI datasets (<code>IBA_CO1_homogenate_2019_SE</code> and <code>IBA_CO1_soil_litter_2019_SE</code>).</em></p>
+<p><em>Example results from running the tutorial on two combined IBA COI datasets, <code>IBA_CO1_homogenate_2019_SE</code> and <code>IBA_CO1_lysate_2019_SE</code> (downsampled and pooled), merged with <code>merge_data()</code>.</em></p>
 <hr>
 <section id="sampling-sites-across-sweden" class="level3">
 <h3 class="anchored" data-anchor-id="sampling-sites-across-sweden">Sampling sites across Sweden</h3>
-<p><em>Map of the 200 IBA sampling sites coloured by habitat type and shaped by sampling method (Malaise trap vs.&nbsp;soil/litter).</em></p>
-<p><img src="figures/map.png" class="img-fluid"></p>
+<p><em>Map of the balanced, pooled IBA sampling sites, coloured by habitat type.</em></p>
+<p><img src="figures/3_map.png" class="img-fluid"></p>
 <hr>
 </section>
-<section id="community-structure-pcoa" class="level3">
-<h3 class="anchored" data-anchor-id="community-structure-pcoa">Community structure (PCoA)</h3>
-<p><em>Principal Coordinates Analysis (Bray–Curtis) of ASV-level community composition. Points coloured by habitat type; circles = Malaise trap, squares = soil/litter.</em></p>
-<p><img src="figures/pcoa.png" class="img-fluid"></p>
+<section id="community-composition-beta-diversity-pcoa" class="level3">
+<h3 class="anchored" data-anchor-id="community-composition-beta-diversity-pcoa">Community composition — beta diversity (PCoA)</h3>
+<p><em>Principal Coordinates Analysis (Spearman-based dissimilarity) of cluster-level community composition, coloured by year-day, habitat, latitude and extraction method. Homogenate and lysate samples are thoroughly mixed in the last panel — extraction method explains only ~0.3% of the variance in community composition (PERMANOVA), compared to ~5-6% for habitat — supporting pooling both for the rest of the analysis.</em></p>
+<p><img src="figures/4_pcoa.png" class="img-fluid"></p>
+<hr>
+</section>
+<section id="within-sample-diversity-alpha-diversity-shannon-index" class="level3">
+<h3 class="anchored" data-anchor-id="within-sample-diversity-alpha-diversity-shannon-index">Within-sample diversity — alpha diversity (Shannon index)</h3>
+<p><em>Diversity within each sample, by habitat — complementing the between-sample (beta diversity) view above.</em></p>
+<p><img src="figures/5_shannon.png" class="img-fluid"></p>
 <hr>
 </section>
 <section id="taxonomic-composition-by-habitat" class="level3">
 <h3 class="anchored" data-anchor-id="taxonomic-composition-by-habitat">Taxonomic composition by habitat</h3>
 <p><em>Mean monthly relative abundance of the most common insect orders in each of the six habitat types.</em></p>
-<p><img src="figures/barplots.png" class="img-fluid"></p>
-<hr>
-</section>
-<section id="random-forest-classifying-habitat-type" class="level3">
-<h3 class="anchored" data-anchor-id="random-forest-classifying-habitat-type">Random Forest: classifying habitat type</h3>
-<p><em>Confusion matrix from Random Forest classification of habitat type based on ASV composition (test set, 20% of samples).</em></p>
-<p><img src="figures/rf_confusion.png" class="img-fluid"></p>
-<p><em>ASVs with the highest permutation importance for habitat classification.</em></p>
-<p><img src="figures/rf_importance.png" class="img-fluid"></p>
-<hr>
-</section>
-<section id="air-vs.-ground-communities" class="level3">
-<h3 class="anchored" data-anchor-id="air-vs.-ground-communities">Air vs.&nbsp;ground communities</h3>
-<p><em>Genus-level Bray–Curtis PCoA comparing Malaise trap and soil/litter communities. Barplot shows which insect orders are over-represented in each sampling method.</em></p>
-<p><img src="figures/airvsground.png" class="img-fluid"></p>
+<p><img src="figures/6_barplots.png" class="img-fluid"></p>
 
 
 </section>

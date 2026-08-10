@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>5. Taxonomic composition and barplots – Exploring eDNA in SBDI — BioSyst EU 2026</title>
+<title>5. Within-sample diversity (alpha diversity) – Exploring eDNA in SBDI — BioSyst EU 2026</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -74,7 +74,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-6033a600180109c3731f6a886c29932c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -156,7 +156,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">5. Taxonomic composition and barplots</h1>
+<h1 class="title">5. Within-sample diversity (alpha diversity)</h1>
 </div>
 
 
@@ -173,50 +173,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p><em>Summarise taxonomic composition across habitat types and seasons using stacked barplots.</em></p>
-<section id="define-the-barplot-function" class="level3">
-<h3 class="anchored" data-anchor-id="define-the-barplot-function">Define the barplot function</h3>
-<p>The function below aggregates monthly averages within each habitat type and plots stacked barplots for the top taxa.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>plot_barplots <span class="ot">&lt;-</span> <span class="cf">function</span>(rank, <span class="at">size_taxa =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">main =</span> <span class="st">""</span>, <span class="at">top_x =</span> <span class="dv">10</span>) {</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  mycols <span class="ot">&lt;-</span> <span class="fu">colorRampPalette</span>(<span class="fu">c</span>(</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"#a6cee3"</span>, <span class="st">"#1f78b4"</span>, <span class="st">"#b2df8a"</span>, <span class="st">"#33a02c"</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"#fb9a99"</span>, <span class="st">"#e31a1c"</span>, <span class="st">"#fdbf6f"</span>, <span class="st">"#ff7f00"</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"#cab2d6"</span>, <span class="st">"#6a3d9a"</span>, <span class="st">"#ffff99"</span>, <span class="st">"#b15928"</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  ))</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  habitats <span class="ot">&lt;-</span> <span class="fu">names</span>(habitat_cols)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="fu">length</span>(habitats), <span class="dv">1</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="dv">14</span>), <span class="at">xpd =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  ok <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">rowMeans</span>(cladecounts_df<span class="sc">$</span>norm[[rank]]),</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">index.return =</span> <span class="cn">TRUE</span>, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>ix[<span class="dv">1</span><span class="sc">:</span>top_x]</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (size_taxa <span class="sc">==</span> <span class="sc">-</span><span class="dv">1</span>) { size_taxa <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fl">1.5</span>, <span class="dv">8</span> <span class="sc">/</span> <span class="fu">length</span>(ok)) }</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (hab <span class="cf">in</span> habitats) {</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    ix <span class="ot">&lt;-</span> <span class="fu">which</span>(habitat <span class="sc">==</span> hab)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    monthly_averages_matr <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="at">ncol =</span> <span class="dv">12</span>, <span class="at">nrow =</span> <span class="fu">nrow</span>(cladecounts_df<span class="sc">$</span>norm[[rank]]))</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>) {</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>      ix2 <span class="ot">&lt;-</span> <span class="fu">intersect</span>(ix, <span class="fu">which</span>(month <span class="sc">==</span> j))</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(ix2) <span class="sc">&gt;</span> <span class="dv">1</span>) { monthly_averages_matr[, j] <span class="ot">&lt;-</span> <span class="fu">rowMeans</span>(cladecounts_df<span class="sc">$</span>norm[[rank]][, ix2]) }</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(ix2) <span class="sc">==</span> <span class="dv">1</span>) { monthly_averages_matr[, j] <span class="ot">&lt;-</span> cladecounts_df<span class="sc">$</span>norm[[rank]][, ix2] }</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(ix2) <span class="sc">==</span> <span class="dv">0</span>) { monthly_averages_matr[, j] <span class="ot">&lt;-</span> <span class="dv">0</span> }</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">barplot</span>(monthly_averages_matr[ok, ], <span class="at">col =</span> <span class="fu">mycols</span>(<span class="fu">length</span>(ok)),</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">main =</span> hab)</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, <span class="at">pch =</span> <span class="dv">19</span>,</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>           <span class="at">col    =</span> <span class="fu">mycols</span>(<span class="fu">length</span>(ok))[<span class="fu">length</span>(ok)<span class="sc">:</span><span class="dv">1</span>],</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>           <span class="at">cex    =</span> size_taxa, <span class="at">inset =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>           <span class="at">legend =</span> <span class="fu">rownames</span>(cladecounts_df<span class="sc">$</span>norm[[rank]])[<span class="fu">rev</span>(ok)])</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Complement the between-sample view from <a href="./tutorial-04-pcoa.html">step 4</a> with diversity <strong>within</strong> each sample — alpha diversity — using the <a href="https://en.wikipedia.org/wiki/Diversity_index#Shannon_index" target="_blank">Shannon index</a>.</em></p>
+<p>While step 4’s PCoA shows whether community <em>composition</em> differs between habitats (beta diversity — how communities differ from one another), this step asks a different, complementary question: do some habitats simply host more diverse communities <em>within</em> a single sample (alpha diversity), regardless of how that composition compares to other samples?</p>
+<section id="calculate-shannon-diversity-per-sample" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-shannon-diversity-per-sample">Calculate Shannon diversity per sample</h3>
+<p>We reuse <code>counts_filt</code>, the cluster-aggregated matrix built in <a href="./tutorial-04-pcoa.html">step 4</a>, instead of building a second large dense matrix:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>shannon <span class="ot">&lt;-</span> vegan<span class="sc">::</span><span class="fu">diversity</span>(counts_filt, <span class="at">MARGIN =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="note-on-taxonomic-ranks" class="level3">
-<h3 class="anchored" data-anchor-id="note-on-taxonomic-ranks">Note on taxonomic ranks</h3>
-<p>Use numeric rank codes where: 1 = kingdom (or domain), 2 = phylum, 3 = class, 4 = order, 5 = family, 6 = genus, 7 = species.</p>
-</section>
-<section id="example-plot-top-orders" class="level3">
-<h3 class="anchored" data-anchor-id="example-plot-top-orders">Example: plot top orders</h3>
-<p>Plot the 8 most abundant insect orders across habitat types:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_barplots</span>(<span class="at">rank =</span> <span class="dv">4</span>, <span class="at">top_x =</span> <span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This creates one stacked barplot row per habitat type, each showing monthly averages for the selected taxa. You can also adjust the size of the taxa legend with the <code>size_taxa</code> parameter.</p>
+<section id="plot-shannon-diversity-by-habitat" class="level3">
+<h3 class="anchored" data-anchor-id="plot-shannon-diversity-by-habitat">Plot Shannon diversity by habitat</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(shannon <span class="sc">~</span> habitat[ix], <span class="at">las =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">""</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylab =</span> <span class="st">"Shannon diversity"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> habitat_cols[<span class="fu">levels</span>(<span class="fu">factor</span>(habitat[ix]))])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Interpretation: a habitat with a high median and narrow spread here hosts consistently diverse communities; a wide spread means diversity varies a lot from sample to sample within that habitat. This is independent of the PCoA result in step 4 — a habitat could look distinct in composition (beta diversity) while being just as diverse, more diverse, or less diverse than others within a sample (alpha diversity).</p>
 <hr>
-<p><a href="./tutorial-04-pcoa.html">← Previous</a> · <a href="./tutorial.html">Overview</a> · <a href="./tutorial-06-randomforest.html">Next →</a></p>
+<p><a href="./tutorial-04-pcoa.html">← Previous</a> · <a href="./tutorial.html">Overview</a> · <a href="./tutorial-06-barplots.html">Next →</a></p>
 
 
 </section>

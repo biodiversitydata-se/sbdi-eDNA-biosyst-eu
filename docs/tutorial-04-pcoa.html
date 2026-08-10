@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>4. Community structure (PCoA) – Exploring eDNA in SBDI — BioSyst EU 2026</title>
+<title>4. Community composition (beta diversity) – Exploring eDNA in SBDI — BioSyst EU 2026</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -74,7 +74,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-6033a600180109c3731f6a886c29932c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -156,7 +156,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">4. Community structure (PCoA)</h1>
+<h1 class="title">4. Community composition (beta diversity)</h1>
 </div>
 
 
@@ -173,81 +173,97 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p><em>Analyse community composition using Bray–Curtis distances and visualise patterns with a Principal Coordinates Analysis (PCoA).</em></p>
-<section id="normalise-counts-to-relative-abundances" class="level3">
-<h3 class="anchored" data-anchor-id="normalise-counts-to-relative-abundances">Normalise counts to relative abundances</h3>
-<p>First, convert ASV counts to relative abundances per sample. Normalising in sparse space avoids creating a large dense intermediate matrix:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>col_totals <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">colSums</span>(merged<span class="sc">$</span>counts)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>norm_sparse <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">t</span>(Matrix<span class="sc">::</span><span class="fu">t</span>(merged<span class="sc">$</span>counts) <span class="sc">/</span> col_totals)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>norm_counts <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(norm_sparse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>norm_sparse</code> retains the sparse structure and is reused in <a href="./tutorial-06-randomforest.html">6</a>. <code>norm_counts</code> is the dense version required by <code>vegdist</code>.</p>
+<p><em>Analyse how community composition differs between samples — beta diversity — using a Spearman correlation-based dissimilarity and a Principal Coordinates Analysis (PCoA).</em></p>
+<section id="aggregate-asvs-to-clusters" class="level3">
+<h3 class="anchored" data-anchor-id="aggregate-asvs-to-clusters">Aggregate ASVs to clusters</h3>
+<p><code>merged$counts</code> is indexed by individual ASV (hundreds of thousands of rows). To work with a more manageable set of clusters instead, we use cluster assignments already included in the ASV portal data, in the <code>associatedSequences</code> column of each dataset’s ASV table — read from <code>loaded</code>, not <code>merged</code>, since <code>merge_data()</code> drops that column when combining datasets.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>cluster_lookup <span class="ot">&lt;-</span> <span class="fu">unique</span>(data.table<span class="sc">::</span><span class="fu">rbindlist</span>(<span class="fu">lapply</span>(loaded<span class="sc">$</span>asvs, <span class="cf">function</span>(x)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  x[, .(taxonID, associatedSequences)])))</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>cluster_id <span class="ot">&lt;-</span> cluster_lookup<span class="sc">$</span>associatedSequences[<span class="fu">match</span>(<span class="fu">rownames</span>(merged<span class="sc">$</span>counts), cluster_lookup<span class="sc">$</span>taxonID)]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>clevels <span class="ot">&lt;-</span> <span class="fu">unique</span>(cluster_id)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>cidx    <span class="ot">&lt;-</span> <span class="fu">match</span>(cluster_id, clevels)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>G <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">sparseMatrix</span>(<span class="at">i =</span> cidx, <span class="at">j =</span> <span class="fu">seq_along</span>(cluster_id), <span class="at">x =</span> <span class="dv">1</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">dims =</span> <span class="fu">c</span>(<span class="fu">length</span>(clevels), <span class="fu">length</span>(cluster_id)))</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>cluster_counts <span class="ot">&lt;-</span> G <span class="sc">%*%</span> merged<span class="sc">$</span>counts</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(cluster_counts) <span class="ot">&lt;-</span> clevels</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(cluster_counts)  <span class="co"># a fraction of the original ASV count</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This reduces the row count enough on its own (e.g.&nbsp;~7-fold for the homogenate dataset) that no further filtering is needed before densifying. <code>ix</code> here is the balanced, pooled sample set from <a href="./tutorial-03-map.html">step 3</a>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>counts_filt <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(cluster_counts[, ix])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="calculate-braycurtis-distances" class="level3">
-<h3 class="anchored" data-anchor-id="calculate-braycurtis-distances">Calculate Bray–Curtis distances</h3>
-<p>Compute pairwise <a href="https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity" target="_blank">Bray–Curtis distances</a> (beta-diversity):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>bray_dist <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">vegdist</span>(<span class="fu">t</span>(norm_counts), <span class="at">method =</span> <span class="st">"bray"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p><strong>Scaling to larger datasets.</strong> The dense matrix <code>norm_counts</code> (ASVs × samples) and the n×n distance matrix can become large. Two recommended steps before this point when working with many ASVs or samples:</p>
-<ol type="1">
-<li><p><strong>Filter rare ASVs</strong> to reduce <code>norm_counts</code> before the <code>as.matrix()</code> call — e.g.&nbsp;keep only ASVs present in ≥5% of samples:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>keep_asvs <span class="ot">&lt;-</span> <span class="fu">which</span>(Matrix<span class="sc">::</span><span class="fu">rowSums</span>(norm_sparse <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">/</span> <span class="fu">ncol</span>(norm_sparse) <span class="sc">&gt;=</span> <span class="fl">0.05</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>norm_counts <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(norm_sparse[keep_asvs, ])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p><strong>Subsample samples</strong> if n &gt; ~1 000: <code>pcoa()</code> performs a full eigendecomposition (O(n³)), which becomes slow above a few thousand samples.</p></li>
-</ol>
-</div>
-</div>
+<section id="calculate-a-spearman-based-dissimilarity" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-a-spearman-based-dissimilarity">Calculate a Spearman-based dissimilarity</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>spear_cor  <span class="ot">&lt;-</span> <span class="fu">cor</span>(counts_filt, <span class="at">method =</span> <span class="st">"spearman"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>spear_dist <span class="ot">&lt;-</span> (<span class="sc">-</span><span class="dv">1</span> <span class="sc">*</span> spear_cor <span class="sc">+</span> <span class="dv">1</span>) <span class="sc">/</span> <span class="dv">2</span>   <span class="co"># rescale correlation to a 0-1 dissimilarity</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="run-pcoa" class="level3">
 <h3 class="anchored" data-anchor-id="run-pcoa">Run PCoA</h3>
-<p>Perform <a href="https://www.geeksforgeeks.org/machine-learning/principal-coordinates-analysis-pcoa-a-comprehensive-guide/" target="_blank">Principal Coordinates Analysis</a> on the distance matrix:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>pcoa_res <span class="ot">&lt;-</span> <span class="fu">pcoa</span>(bray_dist, <span class="at">correction =</span> <span class="st">"cailliez"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>pcoa_res <span class="ot">&lt;-</span> <span class="fu">pcoa</span>(spear_dist, <span class="at">correction =</span> <span class="st">"cailliez"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="prepare-colour-scales" class="level3">
+<h3 class="anchored" data-anchor-id="prepare-colour-scales">Prepare colour scales</h3>
+<p><code>color_habitat</code>/<code>habitat_cols</code> were already built in <a href="./tutorial-03-map.html">step 3</a>. We add two continuous colour scales, sized to the actual range of year-days/latitudes present (rather than a fixed 1-366 / full-latitude range) — otherwise, if the samples only span part of that range, they can all end up in one narrow, visually indistinguishable band of the palette — plus a colour pair for extraction method:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ramp <span class="ot">&lt;-</span> <span class="fu">colorRampPalette</span>(<span class="fu">rev</span>(<span class="fu">c</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"#D73027"</span>, <span class="st">"#FC8D59"</span>, <span class="st">"#FEE090"</span>, <span class="st">"#FFFFBF"</span>, <span class="st">"#E0F3F8"</span>, <span class="st">"#91BFDB"</span>, <span class="st">"#4575B4"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>)))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>yday_range <span class="ot">&lt;-</span> <span class="fu">min</span>(yday[ix], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)<span class="sc">:</span><span class="fu">max</span>(yday[ix], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>color_yday <span class="ot">&lt;-</span> <span class="fu">ramp</span>(<span class="fu">length</span>(yday_range))</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>yday_index <span class="ot">&lt;-</span> yday <span class="sc">-</span> <span class="fu">min</span>(yday_range) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>lat_range <span class="ot">&lt;-</span> <span class="fu">floor</span>(<span class="fu">min</span>(lat[ix], <span class="at">na.rm =</span> <span class="cn">TRUE</span>))<span class="sc">:</span><span class="fu">ceiling</span>(<span class="fu">max</span>(lat[ix], <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>color_lat <span class="ot">&lt;-</span> <span class="fu">ramp</span>(<span class="fu">length</span>(lat_range))</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>lat_index <span class="ot">&lt;-</span> <span class="fu">round</span>(lat) <span class="sc">-</span> <span class="fu">min</span>(lat_range) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>method      <span class="ot">&lt;-</span> dataset_id[ix]</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>method_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">IBA_CO1_homogenate_2019_SE =</span> <span class="st">"#e76f51"</span>, <span class="at">IBA_CO1_lysate_2019_SE =</span> <span class="st">"#2a9d8f"</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>method_labs <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">IBA_CO1_homogenate_2019_SE =</span> <span class="st">"homogenate"</span>, <span class="at">IBA_CO1_lysate_2019_SE =</span> <span class="st">"lysate"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Latitude legend ticks use a fixed 2-degree step. Year-day uses month names instead — point colour still varies continuously by day (so within-month variation is still visible), but a numeric day-of-year legend is harder to read than month names, and picking month starts naturally adapts to whatever period the data actually covers instead of assuming a step size:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>lat_ticks <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">ceiling</span>(<span class="fu">min</span>(lat_range) <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="dv">2</span>, <span class="fu">max</span>(lat_range), <span class="at">by =</span> <span class="dv">2</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>month_ticks  <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">tapply</span>(yday[ix], month[ix], min))  <span class="co"># year-day of each month's first sample</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>month_labels <span class="ot">&lt;-</span> month.abb[<span class="fu">as.integer</span>(<span class="fu">names</span>(month_ticks))]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="plot-pcoa-results" class="level3">
 <h3 class="anchored" data-anchor-id="plot-pcoa-results">Plot PCoA results</h3>
-<p>We plot samples in PCoA space using the first two axes. Point colour shows habitat type; point shape shows sampling method. Two panels separate the two datasets for clarity.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">layout</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">3</span>), <span class="dv">2</span>, <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">2</span>, <span class="dv">1</span>), <span class="at">xpd =</span> <span class="cn">TRUE</span>, <span class="at">cex.axis =</span> <span class="dv">1</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC1 ("</span>, <span class="fu">round</span>(pcoa_res<span class="sc">$</span>values<span class="sc">$</span>Rel_corr_eig[<span class="dv">1</span>] <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%)"</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>ylab <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC2 ("</span>, <span class="fu">round</span>(pcoa_res<span class="sc">$</span>values<span class="sc">$</span>Rel_corr_eig[<span class="dv">2</span>] <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%)"</span>)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Panel: Malaise trap</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pcoa_res<span class="sc">$</span>vectors[, <span class="dv">1</span>], pcoa_res<span class="sc">$</span>vectors[, <span class="dv">2</span>],</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch =</span> pch, <span class="at">col =</span> <span class="st">"white"</span>, <span class="at">bg =</span> <span class="st">"white"</span>,</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> xlab, <span class="at">ylab =</span> ylab, <span class="at">main =</span> <span class="st">"Malaise trap"</span>)</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(pcoa_res<span class="sc">$</span>vectors[DS_malaise, <span class="dv">1</span>], pcoa_res<span class="sc">$</span>vectors[DS_malaise, <span class="dv">2</span>],</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> pch[DS_malaise], <span class="at">col =</span> <span class="st">"black"</span>,</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">bg  =</span> color_habitat[DS_malaise],</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">1.4</span>)</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Panel: Soil/litter</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pcoa_res<span class="sc">$</span>vectors[, <span class="dv">1</span>], pcoa_res<span class="sc">$</span>vectors[, <span class="dv">2</span>],</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch =</span> pch, <span class="at">col =</span> <span class="st">"white"</span>, <span class="at">bg =</span> <span class="st">"white"</span>,</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> xlab, <span class="at">ylab =</span> ylab, <span class="at">main =</span> <span class="st">"Soil/litter"</span>)</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(pcoa_res<span class="sc">$</span>vectors[DS_soillitter, <span class="dv">1</span>], pcoa_res<span class="sc">$</span>vectors[DS_soillitter, <span class="dv">2</span>],</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> pch[DS_soillitter], <span class="at">col =</span> <span class="st">"black"</span>,</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">bg  =</span> color_habitat[DS_soillitter],</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">1.4</span>)</span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Legend</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.new</span>()</span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"center"</span>, <span class="at">bty =</span> <span class="st">"n"</span>,</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">names</span>(habitat_cols),</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>       <span class="at">pt.bg  =</span> habitat_cols,</span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch    =</span> <span class="dv">21</span>, <span class="at">pt.cex =</span> <span class="fl">1.6</span>, <span class="at">cex =</span> <span class="fl">1.1</span>,</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>       <span class="at">title  =</span> <span class="st">"Habitat"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Interpretation: the PCoA shows whether community composition is structured by habitat type, sampling method, or both.</p>
+<p>We plot samples in PCoA space using the first two axes, once per colour variable — year-day, habitat, latitude, and extraction method:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC1 ("</span>, <span class="fu">round</span>(pcoa_res<span class="sc">$</span>values<span class="sc">$</span>Rel_corr_eig[<span class="dv">1</span>] <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%)"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ylab <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC2 ("</span>, <span class="fu">round</span>(pcoa_res<span class="sc">$</span>values<span class="sc">$</span>Rel_corr_eig[<span class="dv">2</span>] <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%)"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">6</span>), <span class="at">xpd =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Panel: colour by year-day</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pcoa_res<span class="sc">$</span>vectors[, <span class="dv">1</span>], pcoa_res<span class="sc">$</span>vectors[, <span class="dv">2</span>],</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">bg =</span> color_yday[yday_index[ix]], <span class="at">pch =</span> <span class="dv">21</span>, <span class="at">cex =</span> <span class="dv">1</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> xlab, <span class="at">ylab =</span> ylab, <span class="at">main =</span> <span class="st">"Colour by year-day"</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="dv">1</span>, <span class="at">inset =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> color_yday[month_ticks <span class="sc">-</span> <span class="fu">min</span>(yday_range) <span class="sc">+</span> <span class="dv">1</span>],</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend =</span> month_labels)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Panel: colour by habitat</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pcoa_res<span class="sc">$</span>vectors[, <span class="dv">1</span>], pcoa_res<span class="sc">$</span>vectors[, <span class="dv">2</span>],</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">bg =</span> color_habitat[ix], <span class="at">pch =</span> <span class="dv">21</span>, <span class="at">cex =</span> <span class="dv">1</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> xlab, <span class="at">ylab =</span> ylab, <span class="at">main =</span> <span class="st">"Colour by habitat"</span>)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="dv">1</span>, <span class="at">inset =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> habitat_cols, <span class="at">legend =</span> <span class="fu">names</span>(habitat_cols))</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Panel: colour by latitude</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pcoa_res<span class="sc">$</span>vectors[, <span class="dv">1</span>], pcoa_res<span class="sc">$</span>vectors[, <span class="dv">2</span>],</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">bg =</span> color_lat[lat_index[ix]], <span class="at">pch =</span> <span class="dv">21</span>, <span class="at">cex =</span> <span class="dv">1</span>,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> xlab, <span class="at">ylab =</span> ylab, <span class="at">main =</span> <span class="st">"Colour by latitude"</span>)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="dv">1</span>, <span class="at">inset =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> color_lat[lat_ticks <span class="sc">-</span> <span class="fu">min</span>(lat_range) <span class="sc">+</span> <span class="dv">1</span>],</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend =</span> lat_ticks)</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Panel: colour by extraction method</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pcoa_res<span class="sc">$</span>vectors[, <span class="dv">1</span>], pcoa_res<span class="sc">$</span>vectors[, <span class="dv">2</span>],</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">bg =</span> method_cols[<span class="fu">as.character</span>(method)], <span class="at">pch =</span> <span class="dv">21</span>, <span class="at">cex =</span> <span class="dv">1</span>,</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> xlab, <span class="at">ylab =</span> ylab, <span class="at">main =</span> <span class="st">"Colour by extraction method"</span>)</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="dv">1</span>, <span class="at">inset =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> method_cols, <span class="at">legend =</span> method_labs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Interpretation: habitat, year-day and latitude are expected to separate out; extraction method should not — homogenate and lysate points should be thoroughly mixed. A formal test (PERMANOVA, not shown here) confirms this on our data: extraction method explains only ~0.3% of the variance in community composition, versus ~5-6% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do from here on, is reasonable.</p>
 <hr>
-<p><a href="./tutorial-03-map.html">← Previous</a> · <a href="./tutorial.html">Overview</a> · <a href="./tutorial-05-barplots.html">Next →</a></p>
+<p><a href="./tutorial-03-map.html">← Previous</a> · <a href="./tutorial.html">Overview</a> · <a href="./tutorial-05-shannon.html">Next →</a></p>
 
 
 </section>

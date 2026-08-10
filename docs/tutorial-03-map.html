@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -74,7 +74,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-6033a600180109c3731f6a886c29932c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -179,43 +179,83 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Core sample-level metadata is available in <code>merged_df$events</code>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(merged_df<span class="sc">$</span>events)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Samples are ordered consistently across tables, which makes it straightforward to link sequence data with contextual data. Thus, <code>rownames(merged_df$events)</code>, <code>rownames(merged_df$emof)</code> and <code>colnames(merged$counts)</code> refer to the same samples.</p>
-<p>To identify samples from each dataset:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>DS_malaise    <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">"homogenate"</span>, <span class="fu">rownames</span>(merged_df<span class="sc">$</span>events))</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>DS_soillitter <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">"soil_litter"</span>, <span class="fu">rownames</span>(merged_df<span class="sc">$</span>events))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 <section id="extract-spatial-and-temporal-variables" class="level3">
 <h3 class="anchored" data-anchor-id="extract-spatial-and-temporal-variables">Extract spatial and temporal variables</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>lat   <span class="ot">&lt;-</span> merged_df<span class="sc">$</span>events<span class="sc">$</span>decimalLatitude</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>lon   <span class="ot">&lt;-</span> merged_df<span class="sc">$</span>events<span class="sc">$</span>decimalLongitude</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>month <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">month</span>(merged_df<span class="sc">$</span>events<span class="sc">$</span>eventDate)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>yday  <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">yday</span>(merged_df<span class="sc">$</span>events<span class="sc">$</span>eventDate)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>eventDate</code> is stored as a <code>start/end</code> interval string, so we parse the start date explicitly rather than passing it straight to <code>month()</code>/<code>yday()</code>. A few samples have only a bare year with no month or day — <code>parse_date_time()</code> leaves those as <code>NA</code> rather than guessing, so they’re excluded downstream instead of getting a misleading date:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>lat   <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(merged_df<span class="sc">$</span>events<span class="sc">$</span>decimalLatitude)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>lon   <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(merged_df<span class="sc">$</span>events<span class="sc">$</span>decimalLongitude)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>event_start <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">parse_date_time</span>(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sub</span>(<span class="st">"/.*"</span>, <span class="st">""</span>, merged_df<span class="sc">$</span>events<span class="sc">$</span>eventDate),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">orders =</span> <span class="fu">c</span>(<span class="st">"ymd_HMSz"</span>, <span class="st">"ymd_HMS"</span>, <span class="st">"ymd"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>month <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">month</span>(event_start)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>yday  <span class="ot">&lt;-</span> lubridate<span class="sc">::</span><span class="fu">yday</span>(event_start)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 <section id="extract-habitat-type" class="level3">
 <h3 class="anchored" data-anchor-id="extract-habitat-type">Extract habitat type</h3>
 <p>The <code>env_local_scale</code> column contains habitat type classifications based on the <a href="https://sites.google.com/site/environmentontology/" target="_blank">Environment Ontology</a> (ENVO). We first inspect the unique values:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(merged_df<span class="sc">$</span>events<span class="sc">$</span>env_local_scale)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(merged_df<span class="sc">$</span>events<span class="sc">$</span>env_local_scale)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>For plotting, we create short labels and assign a colour to each habitat:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>habitat_map <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ENVO:00000091"</span> <span class="ot">=</span> <span class="st">"forest"</span>,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ENVO:00000077"</span> <span class="ot">=</span> <span class="st">"cropland"</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ENVO:00000043"</span> <span class="ot">=</span> <span class="st">"wetland"</span>,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ENVO:00000054"</span> <span class="ot">=</span> <span class="st">"grassland"</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ENVO:01000249"</span> <span class="ot">=</span> <span class="st">"urban"</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ENVO:00000213"</span> <span class="ot">=</span> <span class="st">"alpine"</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>habitat <span class="ot">&lt;-</span> habitat_map[merged_df<span class="sc">$</span>events<span class="sc">$</span>env_local_scale]</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>habitat_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"forest"</span>    <span class="ot">=</span> <span class="st">"#2d6a4f"</span>,</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"cropland"</span>  <span class="ot">=</span> <span class="st">"#d4a017"</span>,</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"wetland"</span>   <span class="ot">=</span> <span class="st">"#4895ef"</span>,</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"grassland"</span> <span class="ot">=</span> <span class="st">"#95d5b2"</span>,</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"urban"</span>     <span class="ot">=</span> <span class="st">"#adb5bd"</span>,</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"alpine"</span>    <span class="ot">=</span> <span class="st">"#9b5de5"</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>color_habitat <span class="ot">&lt;-</span> habitat_cols[habitat]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>habitat_map <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"forested area [ENVO:00000111]"</span>    <span class="ot">=</span> <span class="st">"forest"</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"area of cropland [ENVO:01000892]"</span> <span class="ot">=</span> <span class="st">"cropland"</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"wetland area [ENVO:00000043]"</span>     <span class="ot">=</span> <span class="st">"wetland"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"grassland area [ENVO]"</span>            <span class="ot">=</span> <span class="st">"grassland"</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"urban biome [ENVO:01000249]"</span>      <span class="ot">=</span> <span class="st">"urban"</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"alpine biome [ENVO:01001835]"</span>     <span class="ot">=</span> <span class="st">"alpine"</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>habitat <span class="ot">&lt;-</span> habitat_map[merged_df<span class="sc">$</span>events<span class="sc">$</span>env_local_scale]</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>habitat_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"forest"</span>    <span class="ot">=</span> <span class="st">"#2d6a4f"</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"cropland"</span>  <span class="ot">=</span> <span class="st">"#d4a017"</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"wetland"</span>   <span class="ot">=</span> <span class="st">"#4895ef"</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"grassland"</span> <span class="ot">=</span> <span class="st">"#95d5b2"</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"urban"</span>     <span class="ot">=</span> <span class="st">"#adb5bd"</span>,</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"alpine"</span>    <span class="ot">=</span> <span class="st">"#9b5de5"</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>color_habitat <span class="ot">&lt;-</span> habitat_cols[habitat]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+<section id="filter-samples-and-balance-extraction-methods" class="level3">
+<h3 class="anchored" data-anchor-id="filter-samples-and-balance-extraction-methods">Filter samples and balance extraction methods</h3>
+<p>Samples with very few total reads are excluded, as their community composition is unreliable, and so are the handful with an incomplete <code>eventDate</code> (their <code>yday</code> is <code>NA</code>, see above):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sample_depth <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">colSums</span>(merged<span class="sc">$</span>counts)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(sample_depth)  <span class="co"># inspect before picking a threshold</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>ix <span class="ot">&lt;-</span> <span class="fu">which</span>(sample_depth <span class="sc">&gt;=</span> <span class="dv">100000</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(yday))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(ix)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>100000</code> is a reasonable depth threshold here — check the <code>summary()</code> output above and adjust it if it excludes far more or fewer samples than expected for your dataset.</p>
+<p>The two datasets differ hugely in size (homogenate: ~860 samples; lysate: ~4,550), so combining them as-is would let lysate dominate the analysis purely by sample count, and would make PCoA’s eigendecomposition slow (O(n³) in the number of samples). We downsample lysate down to homogenate’s size instead, keeping the samples balanced 50/50:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dataset_id <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">sub</span>(<span class="st">":.*"</span>, <span class="st">""</span>, <span class="fu">colnames</span>(merged<span class="sc">$</span>counts)))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>hom_ix <span class="ot">&lt;-</span> ix[dataset_id[ix] <span class="sc">==</span> <span class="st">"IBA_CO1_homogenate_2019_SE"</span>]</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>lys_ix <span class="ot">&lt;-</span> ix[dataset_id[ix] <span class="sc">==</span> <span class="st">"IBA_CO1_lysate_2019_SE"</span>]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>ix     <span class="ot">&lt;-</span> <span class="fu">c</span>(hom_ix, <span class="fu">sample</span>(lys_ix, <span class="at">size =</span> <span class="fu">length</span>(hom_ix)))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(ix)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>From here on, <code>ix</code> is the fixed set of samples used throughout the rest of the tutorial — both extraction methods, pooled and balanced.</p>
+<hr>
+</section>
+<section id="map-samples" class="level3">
+<h3 class="anchored" data-anchor-id="map-samples">Map samples</h3>
+<p>We plot the selected sites on a map of Sweden, with point colour indicating habitat type:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>newmap <span class="ot">&lt;-</span> rworldmap<span class="sc">::</span><span class="fu">getMap</span>(<span class="at">resolution =</span> <span class="st">"low"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>lon_jit <span class="ot">&lt;-</span> lon <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(lon), <span class="dv">0</span>, <span class="fl">0.03</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>lat_jit <span class="ot">&lt;-</span> lat <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(lat), <span class="dv">0</span>, <span class="fl">0.03</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">1</span>))</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(newmap, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">25</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">55</span>, <span class="dv">70</span>), <span class="at">asp =</span> <span class="dv">1</span>, <span class="at">main =</span> <span class="st">"Sampling sites"</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(lon_jit[ix], lat_jit[ix], <span class="at">pch =</span> <span class="dv">21</span>, <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">bg =</span> color_habitat[ix], <span class="at">cex =</span> <span class="fl">1.8</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"o"</span>, <span class="at">bg =</span> <span class="st">"white"</span>, <span class="at">legend =</span> <span class="fu">names</span>(habitat_cols),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">pt.bg =</span> habitat_cols, <span class="at">pch =</span> <span class="dv">21</span>, <span class="at">pt.cex =</span> <span class="fl">1.6</span>, <span class="at">cex =</span> <span class="fl">1.0</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Habitat"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Many samples share the same, or a nearby, physical site (repeated visits to the same trap over the season), so plotting raw coordinates hides most of them behind one another. The small amount of random jitter above spreads samples from the same site into a visible cluster instead of a single point.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -226,47 +266,9 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Note:</strong> Check the output of <code>unique(merged_df$events$env_local_scale)</code> and adjust the <code>habitat_map</code> vector if the ENVO identifiers differ from those shown above.</p>
+<p><strong>Spatial autocorrelation.</strong> Many sample sites are close together (within ~10-15 km), so nearby samples are likely to share a regional species pool independent of habitat — beyond the scope of this tutorial, but worth keeping in mind before drawing strong conclusions about habitat effects from the PCoA in the next step.</p>
 </div>
 </div>
-<hr>
-</section>
-<section id="prepare-plotting-symbols" class="level3">
-<h3 class="anchored" data-anchor-id="prepare-plotting-symbols">Prepare plotting symbols</h3>
-<p>We define sampling-method-specific plotting symbols:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>pch <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="cn">NA</span>, <span class="fu">nrow</span>(merged_df<span class="sc">$</span>events))</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>pch[DS_malaise]    <span class="ot">&lt;-</span> <span class="dv">21</span>  <span class="co"># circle: Malaise trap</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>pch[DS_soillitter] <span class="ot">&lt;-</span> <span class="dv">22</span>  <span class="co"># square: soil/litter</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<hr>
-</section>
-<section id="map-samples" class="level3">
-<h3 class="anchored" data-anchor-id="map-samples">Map samples</h3>
-<p>We plot all sites on a map of Sweden, with point colour indicating habitat type and point shape indicating sampling method:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>newmap <span class="ot">&lt;-</span> rworldmap<span class="sc">::</span><span class="fu">getMap</span>(<span class="at">resolution =</span> <span class="st">"low"</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>))</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(newmap,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">25</span>),</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">55</span>, <span class="dv">70</span>),</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">asp  =</span> <span class="dv">1</span>,</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"IBA sampling sites"</span>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(lon, lat,</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"black"</span>,</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">bg  =</span> color_habitat,</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> pch,</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">1.2</span>)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"n"</span>,</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">names</span>(habitat_cols),</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">pt.bg  =</span> habitat_cols,</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch    =</span> <span class="dv">21</span>, <span class="at">pt.cex =</span> <span class="fl">1.4</span>, <span class="at">cex =</span> <span class="fl">0.9</span>,</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">title  =</span> <span class="st">"Habitat"</span>)</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomright"</span>, <span class="at">bty =</span> <span class="st">"n"</span>,</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Malaise trap"</span>, <span class="st">"Soil/litter"</span>),</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch    =</span> <span class="fu">c</span>(<span class="dv">21</span>, <span class="dv">22</span>), <span class="at">pt.cex =</span> <span class="fl">1.4</span>, <span class="at">cex =</span> <span class="fl">0.9</span>,</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">title  =</span> <span class="st">"Method"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 <p><a href="./tutorial-02-prep.html">← Previous</a> · <a href="./tutorial.html">Overview</a> · <a href="./tutorial-04-pcoa.html">Next →</a></p>
 
