@@ -21,6 +21,8 @@ Samples are ordered consistently across tables, which makes it straightforward t
 
 ### Extract spatial and temporal variables
 
+`eventDate` is stored as a `start/end` interval string, so we parse the start date explicitly rather than passing it straight to `month()`/`yday()`. A few samples have only a bare year with no month or day — `parse_date_time()` leaves those as `NA` rather than guessing, so they're excluded downstream instead of getting a misleading date:
+
 ```r
 lat   <- as.numeric(merged_df$events$decimalLatitude)
 lon   <- as.numeric(merged_df$events$decimalLongitude)
@@ -32,10 +34,6 @@ event_start <- lubridate::parse_date_time(
 month <- lubridate::month(event_start)
 yday  <- lubridate::yday(event_start)
 ```
-
-::: {.callout-note}
-`eventDate` is stored as a `start/end` interval string, so we parse the start date explicitly rather than passing it straight to `month()`/`yday()`. A few samples (e.g. in the lysate dataset) have an incomplete date — just a bare year, with no month or day. Rather than guess (e.g. assigning them Jan 1st), `parse_date_time()` leaves those as `NA`, which excludes them downstream instead of introducing a misleading date.
-:::
 
 ---
 
@@ -126,10 +124,6 @@ Many samples share the same, or a nearby, physical site (repeated visits to the 
 ::: {.callout-note}
 **Spatial autocorrelation.** Many sample sites are close together (within ~10-15 km), so nearby samples are likely to share a regional species pool independent of habitat — beyond the scope of this tutorial, but worth keeping in mind before drawing strong conclusions about habitat effects from the PCoA in the next step.
 :::
-
-*Expected result (click to enlarge):*
-
-[![](figures/3_map.png)](figures/3_map.png){target="_blank"}
 
 ---
 
