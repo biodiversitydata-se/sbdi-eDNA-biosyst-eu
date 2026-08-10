@@ -1,22 +1,20 @@
 # Run this script to generate all tutorial figures.
 # Figures are saved to the figures/ folder in the website repo.
 #
-# data_path should point at a folder with only IBA_CO1_homogenate_2019_SE.zip -
-# this produces the main, colleague-validated figures (3_map.png, 4_pcoa.png,
-# 5_barplots.png). data_path_combined additionally includes
-# IBA_CO1_lysate_2019_SE.zip, and is used only for the step 4 bonus figure
-# (4_pcoa_combined.png) via its own independent load_data()/merge_data() call -
-# it is kept separate so the main 4_pcoa.png stays fast and matches the
-# validated single-dataset result.
+# data_path should point at a folder containing both IBA_CO1_homogenate_2019_SE.zip
+# and IBA_CO1_lysate_2019_SE.zip. Lysate is downsampled to homogenate's size
+# right after loading, and every figure after that (map, PCoA, Shannon,
+# barplots) uses that single balanced, pooled sample set - one load/merge
+# pass total, kept small and fast throughout.
 
 library(asvoccur)
+library(vegan)
 library(ape)
 library(rworldmap)
 library(lubridate)
 
-data_path          <- "~/Downloads/IBA/homogenate_only"
-data_path_combined <- "~/Downloads/IBA/lys_hom"
-figure_dir         <- "~/code/github/sbdi-eDNA-biosyst-eu/figures"
+data_path  <- "~/Downloads/IBA/lys_hom"
+figure_dir <- "~/code/github/sbdi-eDNA-biosyst-eu/figures"
 dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
 fig <- function(name) file.path(figure_dir, name)
 
@@ -65,6 +63,21 @@ habitat_cols <- c(
 )
 color_habitat <- habitat_cols[habitat]
 
+# Filter to sufficient depth and complete dates, then downsample lysate down
+# to homogenate's size so both extraction methods are represented equally and
+# PCoA's eigendecomposition (O(n^3) in sample count) stays fast. ix is the
+# fixed, pooled sample set used by every figure from here on.
+sample_depth <- Matrix::colSums(merged$counts)
+print(summary(sample_depth))
+ix_all     <- which(sample_depth >= 100000 & !is.na(yday))
+dataset_id <- factor(sub(":.*", "", colnames(merged$counts)))
+
+set.seed(1)
+hom_ix <- ix_all[dataset_id[ix_all] == "IBA_CO1_homogenate_2019_SE"]
+lys_ix <- ix_all[dataset_id[ix_all] == "IBA_CO1_lysate_2019_SE"]
+ix     <- c(hom_ix, sample(lys_ix, size = length(hom_ix)))
+message(length(ix), " samples after filtering and downsampling (", length(hom_ix), " each)")
+
 newmap <- rworldmap::getMap(resolution = "low")
 
 # Many samples share the same/nearby site (repeated visits); jitter spreads
@@ -76,18 +89,13 @@ lat_jit <- lat + rnorm(length(lat), 0, 0.03)
 png(fig("3_map.png"), width = 700, height = 700)
 par(mar = c(2, 2, 3, 1))
 plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1, main = "Sampling sites")
-points(lon_jit, lat_jit, pch = 21, col = "black", bg = color_habitat, cex = 1.8)
+points(lon_jit[ix], lat_jit[ix], pch = 21, col = "black", bg = color_habitat[ix], cex = 1.8)
 legend("bottomleft", bty = "o", bg = "white", legend = names(habitat_cols),
        pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
        title = "Habitat")
 dev.off()
 
 # ── Tutorial 4: PCoA (Spearman, following iba_microbiome.R) ──────────────────
-
-sample_depth <- Matrix::colSums(merged$counts)
-print(summary(sample_depth))
-ix <- which(sample_depth >= 100000 & !is.na(yday))
-message(length(ix), " of ", length(sample_depth), " samples retained (depth >= 100000, complete date)")
 
 # Necessary adaptation: aggregate ASVs to clusters using the same cluster
 # assignments as the original analysis. Read from loaded$asvs, not
@@ -135,6 +143,10 @@ lat_ticks <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
 month_ticks  <- sort(tapply(yday[ix], month[ix], min))
 month_labels <- month.abb[as.integer(names(month_ticks))]
 
+method      <- dataset_id[ix]
+method_cols <- c(IBA_CO1_homogenate_2019_SE = "#e76f51", IBA_CO1_lysate_2019_SE = "#2a9d8f")
+method_labs <- c(IBA_CO1_homogenate_2019_SE = "homogenate", IBA_CO1_lysate_2019_SE = "lysate")
+
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
 ylab <- paste0("PC2 (", round(pcoa_res$values$Rel_corr_eig[2] * 100), "%)")
 
@@ -161,109 +173,28 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = color_lat[lat_ticks - min(lat_range) + 1],
        legend = lat_ticks)
 
-barplot(pcoa_res$values$Rel_corr_eig[1:20],
-        ylab = "Variance explained", xlab = "Principal coordinate (PC)")
+plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
+     col = "black", bg = method_cols[as.character(method)], pch = 21, cex = 1,
+     xlab = xlab, ylab = ylab, main = "Colour by extraction method")
+legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
+       col = method_cols, legend = method_labs)
 dev.off()
 
-# ── Tutorial 4 bonus: combining datasets (extraction method) ─────────────────
-# Independent pipeline over data_path_combined (homogenate + lysate), kept
-# separate from the main pipeline above so 4_pcoa.png stays fast and matches
-# the validated single-dataset result. Lysate is downsampled to homogenate's
-# size, since it alone has 4,000+ samples - too many for PCoA to handle
-# quickly, and enough to dominate the plot if left unbalanced.
+# ── Tutorial 4b: Alpha diversity (Shannon index by habitat) ──────────────────
+# Reuses counts_filt from above instead of building a second large dense matrix
 
-if (dir.exists(data_path_combined)) {
+shannon <- vegan::diversity(counts_filt, MARGIN = 2)
 
-  loaded_c    <- load_data(data_path_combined)
-  merged_c    <- merge_data(loaded_c)
-  merged_df_c <- convert_to_df(merged_c)
-
-  lat_c <- as.numeric(merged_df_c$events$decimalLatitude)
-  event_start_c <- lubridate::parse_date_time(
-    sub("/.*", "", merged_df_c$events$eventDate),
-    orders = c("ymd_HMSz", "ymd_HMS", "ymd")
-  )
-  month_c <- lubridate::month(event_start_c)
-  yday_c  <- lubridate::yday(event_start_c)
-  habitat_c <- habitat_map[merged_df_c$events$env_local_scale]
-
-  depth_c    <- Matrix::colSums(merged_c$counts)
-  ix_c_all   <- which(depth_c >= 100000 & !is.na(yday_c))
-  dataset_id <- factor(sub(":.*", "", colnames(merged_c$counts)))
-
-  set.seed(1)
-  hom_ix <- ix_c_all[dataset_id[ix_c_all] == "IBA_CO1_homogenate_2019_SE"]
-  lys_ix <- ix_c_all[dataset_id[ix_c_all] == "IBA_CO1_lysate_2019_SE"]
-  ix_c   <- c(hom_ix, sample(lys_ix, size = length(hom_ix)))
-  message(length(ix_c), " samples after downsampling lysate to match homogenate")
-
-  cluster_lookup_c <- unique(data.table::rbindlist(lapply(loaded_c$asvs, function(x)
-    x[, .(taxonID, associatedSequences)])))
-  cluster_id_c <- cluster_lookup_c$associatedSequences[match(rownames(merged_c$counts), cluster_lookup_c$taxonID)]
-  clevels_c <- unique(cluster_id_c)
-  cidx_c    <- match(cluster_id_c, clevels_c)
-  G_c <- Matrix::sparseMatrix(i = cidx_c, j = seq_along(cluster_id_c), x = 1,
-                               dims = c(length(clevels_c), length(cluster_id_c)))
-  cluster_counts_c <- G_c %*% merged_c$counts
-  rownames(cluster_counts_c) <- clevels_c
-
-  counts_filt_c <- as.matrix(cluster_counts_c[, ix_c])
-  spear_cor_c   <- cor(counts_filt_c, method = "spearman")
-  spear_dist_c  <- (-1 * spear_cor_c + 1) / 2
-  pcoa_res_c    <- pcoa(spear_dist_c, correction = "cailliez")
-
-  yday_range_c <- min(yday_c[ix_c], na.rm = TRUE):max(yday_c[ix_c], na.rm = TRUE)
-  color_yday_c <- ramp(length(yday_range_c))
-  yday_index_c <- yday_c - min(yday_range_c) + 1
-
-  lat_range_c <- floor(min(lat_c[ix_c], na.rm = TRUE)):ceiling(max(lat_c[ix_c], na.rm = TRUE))
-  color_lat_c <- ramp(length(lat_range_c))
-  lat_index_c <- round(lat_c) - min(lat_range_c) + 1
-  lat_ticks_c <- seq(ceiling(min(lat_range_c) / 2) * 2, max(lat_range_c), by = 2)
-
-  month_ticks_c  <- sort(tapply(yday_c[ix_c], month_c[ix_c], min))
-  month_labels_c <- month.abb[as.integer(names(month_ticks_c))]
-
-  method_c      <- dataset_id[ix_c]
-  method_cols   <- c(IBA_CO1_homogenate_2019_SE = "#e76f51", IBA_CO1_lysate_2019_SE = "#2a9d8f")
-  method_labs   <- c(IBA_CO1_homogenate_2019_SE = "homogenate", IBA_CO1_lysate_2019_SE = "lysate")
-  color_habitat_c <- habitat_cols[habitat_c]
-
-  xlab_c <- paste0("PC1 (", round(pcoa_res_c$values$Rel_corr_eig[1] * 100), "%)")
-  ylab_c <- paste0("PC2 (", round(pcoa_res_c$values$Rel_corr_eig[2] * 100), "%)")
-
-  png(fig("4_pcoa_combined.png"), width = 900, height = 900)
-  par(mfrow = c(2, 2), mar = c(4, 4, 2, 6), xpd = TRUE)
-
-  plot(pcoa_res_c$vectors[, 1], pcoa_res_c$vectors[, 2],
-       col = "black", bg = color_yday_c[yday_index_c[ix_c]], pch = 21, cex = 1,
-       xlab = xlab_c, ylab = ylab_c, main = "Colour by year-day")
-  legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-         col = color_yday_c[month_ticks_c - min(yday_range_c) + 1], legend = month_labels_c)
-
-  plot(pcoa_res_c$vectors[, 1], pcoa_res_c$vectors[, 2],
-       col = "black", bg = color_habitat_c[ix_c], pch = 21, cex = 1,
-       xlab = xlab_c, ylab = ylab_c, main = "Colour by habitat")
-  legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-         col = habitat_cols, legend = names(habitat_cols))
-
-  plot(pcoa_res_c$vectors[, 1], pcoa_res_c$vectors[, 2],
-       col = "black", bg = color_lat_c[lat_index_c[ix_c]], pch = 21, cex = 1,
-       xlab = xlab_c, ylab = ylab_c, main = "Colour by latitude")
-  legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-         col = color_lat_c[lat_ticks_c - min(lat_range_c) + 1], legend = lat_ticks_c)
-
-  plot(pcoa_res_c$vectors[, 1], pcoa_res_c$vectors[, 2],
-       col = "black", bg = method_cols[as.character(method_c)], pch = 21, cex = 1,
-       xlab = xlab_c, ylab = ylab_c, main = "Colour by extraction method")
-  legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-         col = method_cols, legend = method_labs)
-  dev.off()
-} else {
-  message("Skipping combined-dataset bonus figure: data_path_combined not found")
-}
+png(fig("4b_shannon.png"), width = 700, height = 500)
+par(mar = c(7, 4, 2, 1))
+boxplot(shannon ~ habitat[ix], las = 2, xlab = "",
+        ylab = "Shannon diversity",
+        col = habitat_cols[levels(factor(habitat[ix]))])
+dev.off()
 
 # ── Tutorial 5: Barplots ──────────────────────────────────────────────────────
+# Uses the same ix as steps 3-4, so barplots reflect the balanced, pooled
+# sample set rather than every sample loaded
 
 plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
   mycols <- colorRampPalette(c(
@@ -273,15 +204,15 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
   ))
   habitats <- names(habitat_cols)
   par(mfrow = c(length(habitats), 1), mar = c(2, 3, 2, 14), xpd = TRUE)
-  ok <- sort(Matrix::rowMeans(cladecounts$norm[[rank]]),
+  ok <- sort(Matrix::rowMeans(cladecounts$norm[[rank]][, ix]),
              index.return = TRUE, decreasing = TRUE)$ix[1:top_x]
   if (size_taxa == -1) { size_taxa <- min(1.5, 8 / length(ok)) }
   for (hab in habitats) {
-    ix <- which(habitat == hab)
+    ix_hab <- intersect(ix, which(habitat == hab))
     monthly_averages_matr <- matrix(ncol = 12,
                                     nrow = nrow(cladecounts$norm[[rank]]))
     for (j in 1:12) {
-      ix2 <- intersect(ix, which(month == j))
+      ix2 <- intersect(ix_hab, which(month == j))
       if (length(ix2) > 1) monthly_averages_matr[, j] <- Matrix::rowMeans(cladecounts$norm[[rank]][, ix2])
       if (length(ix2) == 1) monthly_averages_matr[, j] <- cladecounts$norm[[rank]][, ix2]
       if (length(ix2) == 0) monthly_averages_matr[, j] <- 0

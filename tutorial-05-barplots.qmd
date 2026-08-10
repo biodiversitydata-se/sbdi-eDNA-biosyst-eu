@@ -20,14 +20,14 @@ plot_barplots <- function(rank, size_taxa = -1, main = "", top_x = 10) {
   ))
   habitats <- names(habitat_cols)
   par(mfrow = c(length(habitats), 1), mar = c(2, 3, 2, 14), xpd = TRUE)
-  ok <- sort(Matrix::rowMeans(cladecounts$norm[[rank]]),
+  ok <- sort(Matrix::rowMeans(cladecounts$norm[[rank]][, ix]),
              index.return = TRUE, decreasing = TRUE)$ix[1:top_x]
   if (size_taxa == -1) { size_taxa <- min(1.5, 8 / length(ok)) }
   for (hab in habitats) {
-    ix <- which(habitat == hab)
+    ix_hab <- intersect(ix, which(habitat == hab))
     monthly_averages_matr <- matrix(ncol = 12, nrow = nrow(cladecounts$norm[[rank]]))
     for (j in 1:12) {
-      ix2 <- intersect(ix, which(month == j))
+      ix2 <- intersect(ix_hab, which(month == j))
       if (length(ix2) > 1) { monthly_averages_matr[, j] <- Matrix::rowMeans(cladecounts$norm[[rank]][, ix2]) }
       if (length(ix2) == 1) { monthly_averages_matr[, j] <- cladecounts$norm[[rank]][, ix2] }
       if (length(ix2) == 0) { monthly_averages_matr[, j] <- 0 }
@@ -41,6 +41,8 @@ plot_barplots <- function(rank, size_taxa = -1, main = "", top_x = 10) {
   }
 }
 ```
+
+Note `ix` (the balanced, pooled sample set from [step 3](tutorial-03-map.qmd)) is used throughout — both to pick the top taxa and to restrict each habitat/month average — so the barplots reflect exactly the same samples validated in step 4, not every sample loaded.
 
 ### Note on taxonomic ranks
 

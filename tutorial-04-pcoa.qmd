@@ -9,25 +9,12 @@ format:
 
 This step closely follows the original analysis code, with one adaptation needed because `asvoccur` exposes the raw, un-clustered ASV table rather than a pre-clustered OTU table directly: we aggregate ASVs to clusters ourselves first (below), using the same cluster assignments the original analysis used.
 
-### Filter low-depth samples
-
-Samples with very few total reads are excluded, as their community composition is unreliable:
-
-```r
-sample_depth <- Matrix::colSums(merged$counts)
-summary(sample_depth)  # inspect before picking a threshold
-ix <- which(sample_depth >= 100000 & !is.na(yday))
-length(ix)
-```
-
-`100000` is the threshold used in the original analysis — check the `summary()` output above and adjust it if it excludes far more or fewer samples than expected for your dataset. The `!is.na(yday)` part additionally drops the handful of samples with an incomplete `eventDate` (see [step 3](tutorial-03-map.qmd)) — otherwise they'd carry an undefined year-day into the colour scales and PCoA plot below.
-
 ### Aggregate ASVs to clusters
 
 *Necessary adaptation:* `merged$counts` is indexed by individual ASV (hundreds of thousands of rows), whereas the original analysis worked from an already-clustered OTU table. The ASV portal data includes the same cluster assignments, in the `associatedSequences` column of each dataset's ASV table.
 
 ::: {.callout-note}
-**Why read this from `loaded`, not `merged`?** `merge_data()` restricts `merged$asvs` to a fixed set of columns — but only when it actually has to combine two or more datasets. With a single dataset, `Reduce()` never calls the combining function at all and returns the original table untouched, columns and all, so `associatedSequences` happens to still be there. That's an accident of this specific case, not something to rely on: as soon as a second dataset is added, `merge_data()` runs its real merge and drops it. Reading from `loaded` instead works correctly either way.
+**Why read this from `loaded`, not `merged`?** `merge_data()` restricts `merged$asvs` to a fixed set of columns whenever it actually merges two or more datasets, dropping `associatedSequences` along the way. Reading from `loaded` instead — the per-dataset tables, before merging — keeps that column available.
 :::
 
 ```r
@@ -44,7 +31,7 @@ rownames(cluster_counts) <- clevels
 nrow(cluster_counts)  # a fraction of the original ASV count
 ```
 
-This reduces the row count enough on its own (e.g. ~7-fold for the homogenate dataset) that no further filtering is needed before densifying:
+This reduces the row count enough on its own (e.g. ~7-fold for the homogenate dataset) that no further filtering is needed before densifying. `ix` here is the balanced, pooled sample set from [step 3](tutorial-03-map.qmd):
 
 ```r
 counts_filt <- as.matrix(cluster_counts[, ix])
@@ -63,9 +50,9 @@ spear_dist <- (-1 * spear_cor + 1) / 2   # rescale correlation to a 0-1 dissimil
 pcoa_res <- pcoa(spear_dist, correction = "cailliez")
 ```
 
-### Prepare colour scales for year-day and latitude
+### Prepare colour scales
 
-`color_habitat`/`habitat_cols` were already built in [step 3](tutorial-03-map.qmd). We add two continuous colour scales, sized to the actual range of year-days/latitudes present (rather than a fixed 1-366 / full-latitude range) — otherwise, if the samples only span part of that range, they can all end up in one narrow, visually indistinguishable band of the palette:
+`color_habitat`/`habitat_cols` were already built in [step 3](tutorial-03-map.qmd). We add two continuous colour scales, sized to the actual range of year-days/latitudes present (rather than a fixed 1-366 / full-latitude range) — otherwise, if the samples only span part of that range, they can all end up in one narrow, visually indistinguishable band of the palette — plus a colour pair for extraction method:
 
 ```r
 ramp <- colorRampPalette(rev(c(
@@ -79,6 +66,10 @@ yday_index <- yday - min(yday_range) + 1
 lat_range <- floor(min(lat[ix], na.rm = TRUE)):ceiling(max(lat[ix], na.rm = TRUE))
 color_lat <- ramp(length(lat_range))
 lat_index <- round(lat) - min(lat_range) + 1
+
+method      <- dataset_id[ix]
+method_cols <- c(IBA_CO1_homogenate_2019_SE = "#e76f51", IBA_CO1_lysate_2019_SE = "#2a9d8f")
+method_labs <- c(IBA_CO1_homogenate_2019_SE = "homogenate", IBA_CO1_lysate_2019_SE = "lysate")
 ```
 
 Latitude legend ticks use the same fixed 2-degree step as the original analysis. Year-day uses month names instead — point colour still varies continuously by day (so within-month variation is still visible), but a numeric day-of-year legend is harder to read than month names, and picking month starts naturally adapts to whatever period the data actually covers instead of assuming a step size:
@@ -92,7 +83,7 @@ month_labels <- month.abb[as.integer(names(month_ticks))]
 
 ### Plot PCoA results
 
-We plot samples in PCoA space using the first two axes, once per colour variable — year-day, habitat, latitude — plus a scree plot of variance explained per axis:
+We plot samples in PCoA space using the first two axes, once per colour variable — year-day, habitat, latitude, and extraction method:
 
 ```r
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
@@ -123,57 +114,7 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = color_lat[lat_ticks - min(lat_range) + 1],
        legend = lat_ticks)
 
-# Panel: variance explained per axis
-barplot(pcoa_res$values$Rel_corr_eig[1:20],
-        ylab = "Variance explained", xlab = "Principal coordinate (PC)")
-```
-
-*Expected result (click to enlarge):*
-
-[![](figures/4_pcoa.png)](figures/4_pcoa.png){target="_blank"}
-
----
-
-### Bonus: combining datasets — does extraction method matter?
-
-Because the steps above make no assumptions about dataset count, this same code already works if `data_path` (see [step 1](tutorial-01-setup.qmd)) points at a folder containing both `IBA_CO1_homogenate_2019_SE.zip` and `IBA_CO1_lysate_2019_SE.zip`. The only addition needed is downsampling: lysate alone has over 4,000 samples, far more than PCoA's eigendecomposition can handle quickly, and enough to dominate the plot if left unbalanced. Downsample it to the size of the smaller dataset right after the depth filter:
-
-```r
-dataset_id <- factor(sub(":.*", "", colnames(merged$counts)))
-
-set.seed(1)
-hom_ix <- ix[dataset_id[ix] == "IBA_CO1_homogenate_2019_SE"]
-lys_ix <- ix[dataset_id[ix] == "IBA_CO1_lysate_2019_SE"]
-ix     <- c(hom_ix, sample(lys_ix, size = length(hom_ix)))
-```
-
-Re-running the cluster aggregation, Spearman dissimilarity, PCoA and colour-scale steps above with this smaller `ix` is enough to reproduce them for the combined data — only the plot itself changes, with a fourth panel replacing the scree plot to show colour by extraction method:
-
-```r
-method      <- dataset_id[ix]
-method_cols <- c(IBA_CO1_homogenate_2019_SE = "#e76f51", IBA_CO1_lysate_2019_SE = "#2a9d8f")
-method_labs <- c(IBA_CO1_homogenate_2019_SE = "homogenate", IBA_CO1_lysate_2019_SE = "lysate")
-
-par(mfrow = c(2, 2), mar = c(4, 4, 2, 6), xpd = TRUE)
-
-plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
-     col = "black", bg = color_yday[yday_index[ix]], pch = 21, cex = 1,
-     xlab = xlab, ylab = ylab, main = "Colour by year-day")
-legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-       col = color_yday[month_ticks - min(yday_range) + 1], legend = month_labels)
-
-plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
-     col = "black", bg = color_habitat[ix], pch = 21, cex = 1,
-     xlab = xlab, ylab = ylab, main = "Colour by habitat")
-legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-       col = habitat_cols, legend = names(habitat_cols))
-
-plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
-     col = "black", bg = color_lat[lat_index[ix]], pch = 21, cex = 1,
-     xlab = xlab, ylab = ylab, main = "Colour by latitude")
-legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
-       col = color_lat[lat_ticks - min(lat_range) + 1], legend = lat_ticks)
-
+# Panel: colour by extraction method
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = method_cols[as.character(method)], pch = 21, cex = 1,
      xlab = xlab, ylab = ylab, main = "Colour by extraction method")
@@ -181,15 +122,32 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = method_cols, legend = method_labs)
 ```
 
-::: {.callout-note}
-This bonus takes a couple of minutes to run, mostly for the PCoA step — feel free to skip it and just look at the result below if you're short on time.
-:::
+*Expected result (click to enlarge):*
+
+[![](figures/4_pcoa.png)](figures/4_pcoa.png){target="_blank"}
+
+Habitat, year-day and latitude separate out; extraction method does not — homogenate and lysate points are thoroughly mixed. A formal test (PERMANOVA, not shown here) confirms this: extraction method explains only ~0.3% of the variance in community composition, versus ~5-6% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do from here on, is reasonable.
+
+---
+
+### 4b. Alpha diversity: Shannon index by habitat
+
+As a complementary view, we look at diversity *within* each sample using the [Shannon index](https://en.wikipedia.org/wiki/Diversity_index#Shannon_index){target="_blank"}, reusing the cluster-aggregated matrix from above instead of building a second large dense matrix:
+
+```r
+shannon <- vegan::diversity(counts_filt, MARGIN = 2)
+
+par(mar = c(7, 4, 2, 1))
+boxplot(shannon ~ habitat[ix], las = 2, xlab = "",
+        ylab = "Shannon diversity",
+        col = habitat_cols[levels(factor(habitat[ix]))])
+```
+
+While the PCoA above shows whether community *composition* differs between habitats (beta diversity), this shows whether some habitats simply host more diverse communities *within* a sample (alpha diversity) — a complementary, independent question.
 
 *Expected result (click to enlarge):*
 
-[![](figures/4_pcoa_combined.png)](figures/4_pcoa_combined.png){target="_blank"}
-
-Habitat, year-day and latitude still separate out much as before; extraction method does not — homogenate and lysate points are thoroughly mixed. A formal test (PERMANOVA) confirms this: extraction method explains only ~0.3% of the variance in community composition, versus ~5-6% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do in [step 5](tutorial-05-barplots.qmd), is reasonable.
+[![](figures/4b_shannon.png)](figures/4b_shannon.png){target="_blank"}
 
 ---
 

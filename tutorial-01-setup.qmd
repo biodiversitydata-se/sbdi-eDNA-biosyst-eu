@@ -7,9 +7,7 @@ format:
 
 *Set up the R environment used in the tutorial, either via the workshop cloud environment or locally on your laptop.*
 
-::: {.callout-note}
-**Validating against a known result.** Steps 3–5 below make no assumptions about how many datasets are loaded — the exact same code runs whether `data_path` points to a folder with one COI dataset or several. Before working with combined datasets, it's worth first pointing `data_path` at a folder containing only `IBA_CO1_homogenate_2019_SE.zip` and checking that steps 3–5 reproduce previously known results for that single dataset. Once that matches, switch `data_path` to a folder with the full set of datasets you want to combine — no other code changes should be needed.
-:::
+This tutorial combines two COI datasets from the Insect Biome Atlas — Malaise-trap samples extracted with two different protocols, homogenate and lysate — using `asvoccur`'s `merge_data()`. Step 3 checks whether the extraction protocol noticeably affects results before pooling them for the rest of the tutorial.
 
 ## Option A (recommended): Workshop RStudio environment
 
@@ -28,6 +26,7 @@ All required packages are pre-installed in the workshop environment. Load them a
 
 ```r
 library(asvoccur)
+library(vegan)
 library(ape)
 library(rworldmap)
 library(lubridate)
@@ -53,6 +52,7 @@ You will need to install:
 3. the following R packages:
    - `remotes`
    - `asvoccur`
+   - `vegan`
    - `ape`
    - `rworldmap`
    - `lubridate`
@@ -64,6 +64,7 @@ To install and load the required R packages:
 # Install from CRAN
 install.packages(c(
   "remotes",
+  "vegan",
   "ape",
   "rworldmap",
   "lubridate",
@@ -75,6 +76,7 @@ remotes::install_github("biodiversitydata-se/asvoccur")
 
 # Load
 library(asvoccur)
+library(vegan)
 library(ape)
 library(rworldmap)
 library(lubridate)
@@ -95,16 +97,17 @@ In this option, example data is downloaded directly from the ASV portal.
    - sign in with a Google or GitHub account, or
    - create a new SBDI account.
 
-3. On the **Download** page, under **Download link**, download the dataset(s) you want to work with, e.g.:
+3. On the **Download** page, under **Download link**, download both datasets used in this tutorial:
 
-   - IBA_CO1_homogenate_2019_SE (for initial validation against a known result, see note above)
-   - IBA_CO1_lysate_2019_SE (for the combined-datasets demo in [step 4](tutorial-04-pcoa.qmd), alongside homogenate)
+   - IBA_CO1_homogenate_2019_SE
+   - IBA_CO1_lysate_2019_SE
 
-4. Place the zip file(s) you downloaded in a single folder, e.g.:
+4. Place both zip files in a single folder, e.g.:
 
        course-data/
        └── COI/
-           └── IBA_CO1_homogenate_2019_SE.zip
+           ├── IBA_CO1_homogenate_2019_SE.zip
+           └── IBA_CO1_lysate_2019_SE.zip
 
 5. Set the path to the data folder in R and confirm access:
 ```r
