@@ -7,22 +7,10 @@ format:
 
 *Date and location TBC — BioSyst EU 2026, Uppsala University, 17–19 August 2026*
 
-- **Introduction** (10 min)
-  - Overview of SBDI and GBIF
-  - eDNA tools and workflows in SBDI<br><br>
+- **Introduction: SBDI's eDNA tools and workflows** (15 min)
+  - From raw reads to ASVs: ENA submission, denoising with nf-core/ampliseq, the ASV portal and asvoccur
+  - [Download slides (PDF)](slides-intro.pdf){target="_blank"}<br><br>
 
-- **From raw reads to ASVs** (10 min)
-  - Denoising and taxonomic annotation with nf-core/ampliseq<br><br>
-
-- **Data sharing and access in SBDI** (10 min)
-  - Metabarcoding data submission to ENA
-  - Submission, discovery and download in the ASV portal
-  - Processing ASV portal downloads with asvoccur<br><br>
-
-- **Hands-on tutorial: Import and analyse ASV portal data with R** (55 min)
+- **Hands-on tutorial: Import and analyse ASV portal data with R** (1 h)
   - Integrate ASV portal data with asvoccur
-  - Explore arthropod biodiversity patterns across habitat types<br><br>
-
-- **Wrap-up** (5 min)
-  - Key takeaways
-  - Support and next steps
+  - Explore arthropod biodiversity patterns across habitat types

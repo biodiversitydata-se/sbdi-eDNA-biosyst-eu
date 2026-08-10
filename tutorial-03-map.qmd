@@ -82,7 +82,7 @@ ix <- which(sample_depth >= 100000 & !is.na(yday))
 length(ix)
 ```
 
-`100000` is the threshold used in earlier IBA analyses of this data — check the `summary()` output above and adjust it if it excludes far more or fewer samples than expected for your dataset.
+`100000` is a reasonable depth threshold here — check the `summary()` output above and adjust it if it excludes far more or fewer samples than expected for your dataset.
 
 The two datasets differ hugely in size (homogenate: ~860 samples; lysate: ~4,550), so combining them as-is would let lysate dominate the analysis purely by sample count, and would make PCoA's eigendecomposition slow (O(n³) in the number of samples). We downsample lysate down to homogenate's size instead, keeping the samples balanced 50/50:
 

@@ -17,7 +17,7 @@ format:
 
 ---
 
-### Community structure (PCoA)
+### Community composition — beta diversity (PCoA)
 
 *Principal Coordinates Analysis (Spearman-based dissimilarity) of cluster-level community composition, coloured by year-day, habitat, latitude and extraction method. Homogenate and lysate samples are thoroughly mixed in the last panel — extraction method explains only ~0.3% of the variance in community composition (PERMANOVA), compared to ~5-6% for habitat — supporting pooling both for the rest of the analysis.*
 
@@ -25,11 +25,11 @@ format:
 
 ---
 
-### Alpha diversity: Shannon index by habitat
+### Within-sample diversity — alpha diversity (Shannon index)
 
-*Within-sample diversity by habitat, complementing the between-sample (beta diversity) view above.*
+*Diversity within each sample, by habitat — complementing the between-sample (beta diversity) view above.*
 
-![](figures/4b_shannon.png)
+![](figures/5_shannon.png)
 
 ---
 
@@ -37,4 +37,4 @@ format:
 
 *Mean monthly relative abundance of the most common insect orders in each of the six habitat types.*
 
-![](figures/5_barplots.png)
+![](figures/6_barplots.png)

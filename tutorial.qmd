@@ -7,15 +7,14 @@ format:
 
 This tutorial walks through the main steps needed to integrate ASV portal data in R and explore biodiversity patterns. As a case study, we use COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"} (IBA) project to examine arthropod community composition across habitat types in Sweden.
 
-In 2019, the IBA project collected arthropod samples at 200 sites spanning six habitat types — forest, cropland, wetland, grassland, urban and alpine. The full Swedish IBA dataset comprises four COI datasets that differ in both sampling method (Malaise trap vs. soil/litter extraction) and DNA extraction protocol (ethanol preservation, homogenate, or lysate).
-
-This tutorial combines two of these — Malaise-trap samples extracted as homogenate and as lysate — using `asvoccur`'s `merge_data()`. Step 3 downsamples the larger dataset (lysate) to balance the two, and step 4 checks whether the extraction protocol noticeably affects community structure before pooling both for the rest of the tutorial.
+In 2019, the IBA project collected arthropod samples at 200 sites spanning six habitat types — forest, cropland, wetland, grassland, urban and alpine. The full Swedish IBA dataset comprises four COI datasets that differ in both sampling method (Malaise trap vs. soil/litter extraction) and DNA extraction protocol (ethanol preservation, homogenate, or lysate). Here, we combine the homogenate-extracted Malaise-trap samples with a downsampled subset of the lysate-extracted Malaise-trap samples.
 
 1. [Set up the environment](tutorial-01-setup.qmd) — Access the workshop RStudio environment (or run locally)
 2. [Prepare data](tutorial-02-prep.qmd) — Load, merge and aggregate data sourced from the ASV portal
 3. [Map samples](tutorial-03-map.qmd) — Filter, balance and map sampling coverage across Sweden and habitat types
-4. [Community structure](tutorial-04-pcoa.qmd) — Spearman-based dissimilarity and PCoA, coloured by year-day, habitat, latitude and extraction method, plus Shannon alpha-diversity by habitat
-5. [Taxonomic composition](tutorial-05-barplots.qmd) — Taxonomic barplots across habitat types
+4. [Community composition](tutorial-04-pcoa.qmd) — Beta diversity: Spearman dissimilarity and PCoA
+5. [Within-sample diversity](tutorial-05-shannon.qmd) — Alpha diversity: Shannon index by habitat
+6. [Taxonomic composition](tutorial-06-barplots.qmd) — Taxonomic barplots across habitat types
 
 [Get started →](tutorial-01-setup.qmd)
 

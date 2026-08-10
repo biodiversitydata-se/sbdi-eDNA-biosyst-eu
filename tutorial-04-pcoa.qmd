@@ -1,17 +1,15 @@
 ---
-title: "4. Community structure (beta diversity)"
+title: "4. Community composition (beta diversity)"
 format:
   html:
     toc: false
 ---
 
-*Analyse how community composition differs between samples — beta diversity — using a Spearman correlation-based dissimilarity and a Principal Coordinates Analysis (PCoA), following the approach used in earlier IBA analyses of this data.*
-
-This step closely follows the original analysis code, with one adaptation needed because `asvoccur` exposes the raw, un-clustered ASV table rather than a pre-clustered OTU table directly: we aggregate ASVs to clusters ourselves first (below), using the same cluster assignments the original analysis used.
+*Analyse how community composition differs between samples — beta diversity — using a Spearman correlation-based dissimilarity and a Principal Coordinates Analysis (PCoA).*
 
 ### Aggregate ASVs to clusters
 
-*Necessary adaptation:* `merged$counts` is indexed by individual ASV (hundreds of thousands of rows), whereas the original analysis worked from an already-clustered OTU table. The ASV portal data includes the same cluster assignments, in the `associatedSequences` column of each dataset's ASV table — we read this from `loaded`, not `merged`, since `merge_data()` drops that column when combining datasets.
+`merged$counts` is indexed by individual ASV (hundreds of thousands of rows). To work with a more manageable set of clusters instead, we use cluster assignments already included in the ASV portal data, in the `associatedSequences` column of each dataset's ASV table — read from `loaded`, not `merged`, since `merge_data()` drops that column when combining datasets.
 
 ```r
 cluster_lookup <- unique(data.table::rbindlist(lapply(loaded$asvs, function(x)
@@ -68,7 +66,7 @@ method_cols <- c(IBA_CO1_homogenate_2019_SE = "#e76f51", IBA_CO1_lysate_2019_SE 
 method_labs <- c(IBA_CO1_homogenate_2019_SE = "homogenate", IBA_CO1_lysate_2019_SE = "lysate")
 ```
 
-Latitude legend ticks use the same fixed 2-degree step as the original analysis. Year-day uses month names instead — point colour still varies continuously by day (so within-month variation is still visible), but a numeric day-of-year legend is harder to read than month names, and picking month starts naturally adapts to whatever period the data actually covers instead of assuming a step size:
+Latitude legend ticks use a fixed 2-degree step. Year-day uses month names instead — point colour still varies continuously by day (so within-month variation is still visible), but a numeric day-of-year legend is harder to read than month names, and picking month starts naturally adapts to whatever period the data actually covers instead of assuming a step size:
 
 ```r
 lat_ticks <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)

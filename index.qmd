@@ -18,4 +18,4 @@ Participants will learn about tools and workflows for eDNA data management and a
 
 ## Instructors
 - Dr. Maria Prager — SBDI & University of Gothenburg
-- Dr. Tobias Andermann — Uppsala University
+- Dr. Tobias Andermann — SBDI & Uppsala University

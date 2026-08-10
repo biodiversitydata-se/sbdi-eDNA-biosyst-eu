@@ -1,5 +1,5 @@
 ---
-title: "5. Taxonomic composition and barplots"
+title: "6. Taxonomic composition and barplots"
 format:
   html:
     toc: false
@@ -59,10 +59,6 @@ plot_barplots(rank = 4, top_x = 8)
 
 This creates one stacked barplot row per habitat type, each showing monthly averages for the selected taxa. You can also adjust the size of the taxa legend with the `size_taxa` parameter.
 
-*Expected result (click to enlarge):*
-
-[![](figures/5_barplots.png)](figures/5_barplots.png){target="_blank"}
-
 ---
 
-[← Previous](tutorial-04-pcoa.qmd) · [Overview](tutorial.qmd)
+[← Previous](tutorial-05-shannon.qmd) · [Overview](tutorial.qmd)

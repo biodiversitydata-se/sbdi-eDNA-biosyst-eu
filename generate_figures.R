@@ -180,19 +180,19 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = method_cols, legend = method_labs)
 dev.off()
 
-# ── Tutorial 4b: Alpha diversity (Shannon index by habitat) ──────────────────
+# ── Tutorial 5: Alpha diversity (Shannon index by habitat) ───────────────────
 # Reuses counts_filt from above instead of building a second large dense matrix
 
 shannon <- vegan::diversity(counts_filt, MARGIN = 2)
 
-png(fig("4b_shannon.png"), width = 700, height = 500)
+png(fig("5_shannon.png"), width = 700, height = 500)
 par(mar = c(7, 4, 2, 1))
 boxplot(shannon ~ habitat[ix], las = 2, xlab = "",
         ylab = "Shannon diversity",
         col = habitat_cols[levels(factor(habitat[ix]))])
 dev.off()
 
-# ── Tutorial 5: Barplots ──────────────────────────────────────────────────────
+# ── Tutorial 6: Barplots ──────────────────────────────────────────────────────
 # Uses the same ix as steps 3-4, so barplots reflect the balanced, pooled
 # sample set rather than every sample loaded
 
@@ -225,7 +225,7 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
   }
 }
 
-png(fig("5_barplots.png"), width = 800, height = 1400)
+png(fig("6_barplots.png"), width = 800, height = 1400)
 plot_barplots(rank = 4, top_x = 8)
 dev.off()
 
