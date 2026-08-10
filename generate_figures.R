@@ -33,8 +33,16 @@ cladecounts <- sum_by_clade(merged$counts, merged$asvs)
 
 lat   <- as.numeric(merged_df$events$decimalLatitude)
 lon   <- as.numeric(merged_df$events$decimalLongitude)
-month <- lubridate::month(merged_df$events$eventDate)
-yday  <- lubridate::yday(merged_df$events$eventDate)
+
+# eventDate is a start/end interval string; a few samples have only a bare
+# year (no month/day) - parse_date_time() leaves those as NA rather than
+# guessing, so they're excluded downstream instead of getting a misleading date
+event_start <- lubridate::parse_date_time(
+  sub("/.*", "", merged_df$events$eventDate),
+  orders = c("ymd_HMSz", "ymd_HMS", "ymd")
+)
+month <- lubridate::month(event_start)
+yday  <- lubridate::yday(event_start)
 
 # Check ENVO values and adjust habitat_map if needed:
 print(unique(merged_df$events$env_local_scale))
@@ -80,8 +88,8 @@ dev.off()
 
 sample_depth <- Matrix::colSums(merged$counts)
 print(summary(sample_depth))
-ix <- which(sample_depth >= 100000)
-message(length(ix), " of ", length(sample_depth), " samples retained (depth >= 100000)")
+ix <- which(sample_depth >= 100000 & !is.na(yday))
+message(length(ix), " of ", length(sample_depth), " samples retained (depth >= 100000, complete date)")
 
 # Necessary adaptation: aggregate ASVs to clusters using the same cluster
 # assignments as the original analysis. Read from loaded$asvs, not
@@ -182,7 +190,7 @@ if (dir.exists(data_path_combined)) {
   habitat_c <- habitat_map[merged_df_c$events$env_local_scale]
 
   depth_c    <- Matrix::colSums(merged_c$counts)
-  ix_c_all   <- which(depth_c >= 100000)
+  ix_c_all   <- which(depth_c >= 100000 & !is.na(yday_c))
   dataset_id <- factor(sub(":.*", "", colnames(merged_c$counts)))
 
   set.seed(1)

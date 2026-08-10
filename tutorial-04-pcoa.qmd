@@ -16,11 +16,11 @@ Samples with very few total reads are excluded, as their community composition i
 ```r
 sample_depth <- Matrix::colSums(merged$counts)
 summary(sample_depth)  # inspect before picking a threshold
-ix <- which(sample_depth >= 100000)
+ix <- which(sample_depth >= 100000 & !is.na(yday))
 length(ix)
 ```
 
-`100000` is the threshold used in the original analysis — check the `summary()` output above and adjust it if it excludes far more or fewer samples than expected for your dataset.
+`100000` is the threshold used in the original analysis — check the `summary()` output above and adjust it if it excludes far more or fewer samples than expected for your dataset. The `!is.na(yday)` part additionally drops the handful of samples with an incomplete `eventDate` (see [step 3](tutorial-03-map.qmd)) — otherwise they'd carry an undefined year-day into the colour scales and PCoA plot below.
 
 ### Aggregate ASVs to clusters
 

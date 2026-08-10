@@ -24,20 +24,17 @@ Samples are ordered consistently across tables, which makes it straightforward t
 ```r
 lat   <- as.numeric(merged_df$events$decimalLatitude)
 lon   <- as.numeric(merged_df$events$decimalLongitude)
-month <- lubridate::month(merged_df$events$eventDate)
-yday  <- lubridate::yday(merged_df$events$eventDate)
-```
 
-::: {.callout-note}
-`eventDate` is stored as a `start/end` interval string. If `month`/`yday` come back as `NA`, parse the start date explicitly instead:
-```r
 event_start <- lubridate::parse_date_time(
   sub("/.*", "", merged_df$events$eventDate),
-  orders = c("ymd_HMSz", "ymd_HMS", "ymd", "y")
+  orders = c("ymd_HMSz", "ymd_HMS", "ymd")
 )
 month <- lubridate::month(event_start)
 yday  <- lubridate::yday(event_start)
 ```
+
+::: {.callout-note}
+`eventDate` is stored as a `start/end` interval string, so we parse the start date explicitly rather than passing it straight to `month()`/`yday()`. A few samples (e.g. in the lysate dataset) have an incomplete date — just a bare year, with no month or day. Rather than guess (e.g. assigning them Jan 1st), `parse_date_time()` leaves those as `NA`, which excludes them downstream instead of introducing a misleading date.
 :::
 
 ---
