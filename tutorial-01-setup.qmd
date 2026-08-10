@@ -104,7 +104,7 @@ In this option, example data is downloaded directly from the ASV portal.
 3. On the **Download** page, under **Download link**, download the dataset(s) you want to work with, e.g.:
 
    - IBA_CO1_homogenate_2019_SE (for initial validation against a known result, see note above)
-   - IBA_CO1_lysate_2019_SE and IBA_CO1_soil_litter_2019_SE (for the combined analysis)
+   - IBA_CO1_lysate_2019_SE (for the combined-datasets demo in [step 4](tutorial-04-pcoa.qmd), alongside homogenate)
 
 4. Place the zip file(s) you downloaded in a single folder, e.g.:
 
