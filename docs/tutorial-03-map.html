@@ -178,7 +178,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="inspect-contextual-data">Inspect contextual data</h3>
 <p>Core sample-level metadata is available in <code>merged_df$events</code>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(merged_df<span class="sc">$</span>events)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Samples are ordered consistently across tables, which makes it straightforward to link sequence data with contextual data. Thus, <code>rownames(merged_df$events)</code>, <code>rownames(merged_df$emof)</code> and <code>colnames(merged$counts)</code> refer to the same samples.</p>
+<p>Samples are ordered consistently across tables — <code>rownames(merged_df$events)</code>, <code>rownames(merged_df$emof)</code> and <code>colnames(merged$counts)</code> all refer to the same samples.</p>
 <hr>
 </section>
 <section id="extract-spatial-and-temporal-variables" class="level3">
@@ -229,7 +229,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>ix <span class="ot">&lt;-</span> <span class="fu">which</span>(sample_depth <span class="sc">&gt;=</span> <span class="dv">100000</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(yday))</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(ix)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>100000</code> is a reasonable depth threshold here — check the <code>summary()</code> output above and adjust it if it excludes far more or fewer samples than expected for your dataset.</p>
-<p>The two datasets differ hugely in size (homogenate: ~860 samples; lysate: ~4,550), so combining them as-is would let lysate dominate the analysis purely by sample count, and would make PCoA’s eigendecomposition slow (O(n³) in the number of samples). We downsample lysate down to homogenate’s size instead, keeping the samples balanced 50/50:</p>
+<p>The two datasets differ hugely in size (homogenate: ~860 samples; lysate: ~4,550) — left as-is, lysate would dominate the analysis by sample count alone, and slow down PCoA considerably. We downsample lysate to homogenate’s size instead, keeping the two balanced 50/50:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dataset_id <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">sub</span>(<span class="st">":.*"</span>, <span class="st">""</span>, <span class="fu">colnames</span>(merged<span class="sc">$</span>counts)))</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
@@ -255,7 +255,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"o"</span>, <span class="at">bg =</span> <span class="st">"white"</span>, <span class="at">legend =</span> <span class="fu">names</span>(habitat_cols),</span>
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">pt.bg =</span> habitat_cols, <span class="at">pch =</span> <span class="dv">21</span>, <span class="at">pt.cex =</span> <span class="fl">1.6</span>, <span class="at">cex =</span> <span class="fl">1.0</span>,</span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Habitat"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Many samples share the same, or a nearby, physical site (repeated visits to the same trap over the season), so plotting raw coordinates hides most of them behind one another. The small amount of random jitter above spreads samples from the same site into a visible cluster instead of a single point.</p>
+<p>Many samples share the same, or a nearby, physical site (repeated visits over the season) — the small amount of jitter above spreads them into a visible cluster instead of hiding them behind a single point.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
