@@ -246,7 +246,7 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
       }
 
       if (length(ix2) == 0) {
-        monthly_averages_matr[, j] <- 0
+        monthly_averages_matr[, j] <- NA
       }
     }
 

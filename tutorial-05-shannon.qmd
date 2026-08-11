@@ -26,9 +26,7 @@ boxplot(shannon ~ habitat[ix], las = 2, xlab = "",
         col = habitat_cols[levels(factor(habitat[ix]))])
 ```
 
-The boxplots show how within-sample diversity varies within and between habitats.
-
-This is distinct from the PCoA in step 4: two habitats can differ strongly in community composition while having similar levels of alpha diversity.
+Shannon diversity is broadly similar across habitats, with substantial overlap in their distributions. This contrasts with the PCoA in step 4: habitats can differ in community composition without showing equally strong differences in within-sample diversity.
 
 ---
 

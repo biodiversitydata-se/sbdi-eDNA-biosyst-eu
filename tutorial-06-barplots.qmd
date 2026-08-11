@@ -55,7 +55,7 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
       }
 
       if (length(ix2) == 0) {
-        monthly_averages_matr[, j] <- 0
+        monthly_averages_matr[, j] <- NA
       }
     }
 
@@ -100,7 +100,7 @@ Plot the eight most abundant orders across habitats and months:
 plot_barplots(rank = 4, top_x = 8)
 ```
 
-This produces one panel per habitat. Each bar represents a month, and the coloured segments show the mean relative abundance of the selected orders. Months with no samples for a given habitat are shown as zero.
+Each panel represents a habitat and each bar a month, with coloured segments showing the mean relative abundance of the selected orders. Diptera dominate many habitat–month combinations, while the contribution of other orders varies across habitats and months. Some habitat–month combinations have no samples, so these patterns should be interpreted alongside the sampling coverage in step 3.
 
 ---
 

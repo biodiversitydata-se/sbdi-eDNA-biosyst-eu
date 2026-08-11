@@ -121,11 +121,7 @@ legend("bottomleft", bty = "o", bg = "white", legend = names(habitat_cols),
        title = "Habitat")
 ```
 
-Many samples share the same, or a nearby, physical site (repeated visits over the season) — the small amount of jitter above spreads them into a visible cluster instead of hiding them behind a single point.
-
-::: {.callout-note}
-**Spatial autocorrelation.** Many sampling sites are close together (~10–15 km apart), so nearby samples may be similar regardless of habitat. Keep this in mind when interpreting habitat patterns in the PCoA.
-:::
+Many samples share the same, or a nearby, physical site (repeated visits over the season) — the small amount of jitter above spreads them into a visible cluster instead of hiding them behind a single point. More broadly, many sampling sites are close together (~10–15 km apart); this spatial autocorrelation means nearby samples may be similar regardless of habitat — worth keeping in mind when interpreting habitat patterns in the PCoA.
 
 ---
 
