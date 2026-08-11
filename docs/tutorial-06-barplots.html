@@ -216,7 +216,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>      }</span>
 <span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(ix2) <span class="sc">==</span> <span class="dv">0</span>) {</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>        monthly_averages_matr[, j] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>        monthly_averages_matr[, j] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
 <span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>      }</span>
 <span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    }</span>
 <span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
@@ -256,7 +256,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="example-plot-top-orders">Example: plot top orders</h3>
 <p>Plot the eight most abundant orders across habitats and months:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_barplots</span>(<span class="at">rank =</span> <span class="dv">4</span>, <span class="at">top_x =</span> <span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This produces one panel per habitat. Each bar represents a month, and the coloured segments show the mean relative abundance of the selected orders. Months with no samples for a given habitat are shown as zero.</p>
+<p>Each panel represents a habitat and each bar a month, with coloured segments showing the mean relative abundance of the selected orders. Diptera dominate many habitat–month combinations, while the contribution of other orders varies across habitats and months. Some habitat–month combinations have no samples, so these patterns should be interpreted alongside the sampling coverage in step 3.</p>
 <hr>
 <p><a href="./tutorial-05-shannon.html">← Previous</a> · <a href="./tutorial.html">Overview</a></p>
 
