@@ -5,17 +5,17 @@ format:
     toc: false
 ---
 
-*Complement the between-sample view from [step 4](tutorial-04-pcoa.qmd) with diversity **within** each sample — alpha diversity — using the [Shannon index](https://en.wikipedia.org/wiki/Diversity_index#Shannon_index){target="_blank"}.*
-
-While step 4's PCoA shows whether community *composition* differs between habitats (beta diversity — how communities differ from one another), this step asks a different, complementary question: do some habitats simply host more diverse communities *within* a single sample (alpha diversity), regardless of how that composition compares to other samples?
+*Examine diversity **within** each sample — alpha diversity — using the [Shannon index](https://en.wikipedia.org/wiki/Diversity_index#Shannon_index){target="_blank"}, complementing the between-sample comparison of community composition in [step 4](tutorial-04-pcoa.qmd).*
 
 ### Calculate Shannon diversity per sample
 
-We reuse `counts_filt`, the cluster-aggregated matrix built in [step 4](tutorial-04-pcoa.qmd), instead of building a second large dense matrix:
+We reuse `counts_filt`, the cluster-aggregated matrix from [step 4](tutorial-04-pcoa.qmd):
 
 ```r
 shannon <- vegan::diversity(counts_filt, MARGIN = 2)
 ```
+
+A higher Shannon index indicates greater within-sample diversity, reflecting both the number of clusters present and how evenly their abundances are distributed.
 
 ### Plot Shannon diversity by habitat
 
@@ -26,7 +26,9 @@ boxplot(shannon ~ habitat[ix], las = 2, xlab = "",
         col = habitat_cols[levels(factor(habitat[ix]))])
 ```
 
-Interpretation: a habitat with a high median and narrow spread here hosts consistently diverse communities; a wide spread means diversity varies a lot from sample to sample within that habitat. This is independent of the PCoA result in step 4 — a habitat could look distinct in composition (beta diversity) while being just as diverse, more diverse, or less diverse than others within a sample (alpha diversity).
+The boxplots show how within-sample diversity varies within and between habitats.
+
+This is distinct from the PCoA in step 4: two habitats can differ strongly in community composition while having similar levels of alpha diversity.
 
 ---
 
