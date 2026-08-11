@@ -122,7 +122,7 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = method_cols, legend = method_labs)
 ```
 
-Interpretation: habitat, year-day and latitude are expected to separate out; extraction method should not — homogenate and lysate points should be thoroughly mixed. A formal test (PERMANOVA, not shown here) confirms this on our data: extraction method explains only ~0.3% of the variance in community composition, versus ~5-6% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do from here on, is reasonable.
+Interpretation: habitat, year-day and latitude are expected to separate out; extraction method should not — homogenate and lysate points should be thoroughly mixed. A formal test (PERMANOVA, not shown here) confirms this on our data: extraction method explains only ~0.3% of the variance in community composition, versus ~4% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do from here on, is reasonable.
 
 ---
 

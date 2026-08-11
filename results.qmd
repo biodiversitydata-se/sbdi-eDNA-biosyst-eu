@@ -19,7 +19,7 @@ format:
 
 ### Community differences — beta diversity (PCoA)
 
-*Principal Coordinates Analysis (Spearman-based dissimilarity) of cluster-level community composition, coloured by year-day, habitat, latitude and extraction method. Homogenate and lysate samples are thoroughly mixed in the last panel — extraction method explains only ~0.3% of the variance in community composition (PERMANOVA), compared to ~5-6% for habitat — supporting pooling both for the rest of the analysis.*
+*Principal Coordinates Analysis (Spearman-based dissimilarity) of cluster-level community composition, coloured by year-day, habitat, latitude and extraction method. Homogenate and lysate samples are thoroughly mixed in the last panel — extraction method explains only ~0.3% of the variance in community composition (PERMANOVA), compared to ~4% for habitat — supporting pooling both for the rest of the analysis.*
 
 ![](figures/4_pcoa.png)
 
