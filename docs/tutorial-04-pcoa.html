@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>4. Community composition (beta diversity) – Exploring eDNA in SBDI — BioSyst EU 2026</title>
+<title>4. Community differences (beta diversity) – Exploring eDNA in SBDI — BioSyst EU 2026</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -132,10 +132,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./agenda.html"> 
-<span class="menu-text">Agenda</span></a>
-  </li>  
-  <li class="nav-item">
     <a class="nav-link" href="./tutorial.html"> 
 <span class="menu-text">Hands-on tutorial</span></a>
   </li>  
@@ -156,7 +152,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">4. Community composition (beta diversity)</h1>
+<h1 class="title">4. Community differences (beta diversity)</h1>
 </div>
 
 
@@ -181,13 +177,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  x[, .(taxonID, associatedSequences)])))</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>cluster_id <span class="ot">&lt;-</span> cluster_lookup<span class="sc">$</span>associatedSequences[<span class="fu">match</span>(<span class="fu">rownames</span>(merged<span class="sc">$</span>counts), cluster_lookup<span class="sc">$</span>taxonID)]</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>clevels <span class="ot">&lt;-</span> <span class="fu">unique</span>(cluster_id)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>cidx    <span class="ot">&lt;-</span> <span class="fu">match</span>(cluster_id, clevels)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>G <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">sparseMatrix</span>(<span class="at">i =</span> cidx, <span class="at">j =</span> <span class="fu">seq_along</span>(cluster_id), <span class="at">x =</span> <span class="dv">1</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">dims =</span> <span class="fu">c</span>(<span class="fu">length</span>(clevels), <span class="fu">length</span>(cluster_id)))</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>cluster_counts <span class="ot">&lt;-</span> G <span class="sc">%*%</span> merged<span class="sc">$</span>counts</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(cluster_counts) <span class="ot">&lt;-</span> clevels</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(cluster_counts)  <span class="co"># a fraction of the original ASV count</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Sanity check: every ASV should map to exactly one cluster - match() would</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># otherwise silently return the wrong cluster without warning</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">sum</span>(<span class="fu">is.na</span>(cluster_id)) <span class="sc">==</span> <span class="dv">0</span>, <span class="fu">anyDuplicated</span>(cluster_lookup<span class="sc">$</span>taxonID) <span class="sc">==</span> <span class="dv">0</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>clevels <span class="ot">&lt;-</span> <span class="fu">unique</span>(cluster_id)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>cidx    <span class="ot">&lt;-</span> <span class="fu">match</span>(cluster_id, clevels)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>G <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">sparseMatrix</span>(<span class="at">i =</span> cidx, <span class="at">j =</span> <span class="fu">seq_along</span>(cluster_id), <span class="at">x =</span> <span class="dv">1</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                           <span class="at">dims =</span> <span class="fu">c</span>(<span class="fu">length</span>(clevels), <span class="fu">length</span>(cluster_id)))</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>cluster_counts <span class="ot">&lt;-</span> G <span class="sc">%*%</span> merged<span class="sc">$</span>counts</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(cluster_counts) <span class="ot">&lt;-</span> clevels</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(cluster_counts)  <span class="co"># a fraction of the original ASV count</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This alone reduces the row count considerably (e.g.&nbsp;~7-fold for the homogenate dataset), but some clusters can still be entirely zero within just the samples selected by <code>ix</code> (e.g.&nbsp;clusters only present in other samples). Left in, those constant rows add a block of tied ranks to the Spearman correlation below, which can shift the ranking — and therefore the correlation — of the real values. <code>ix</code> is the balanced, pooled sample set from <a href="./tutorial-03-map.html">step 3</a>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>counts_filt <span class="ot">&lt;-</span> cluster_counts[, ix, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>counts_filt <span class="ot">&lt;-</span> counts_filt[Matrix<span class="sc">::</span><span class="fu">rowSums</span>(counts_filt) <span class="sc">&gt;</span> <span class="dv">0</span>, , drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
@@ -263,7 +263,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> xlab, <span class="at">ylab =</span> ylab, <span class="at">main =</span> <span class="st">"Colour by extraction method"</span>)</span>
 <span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="dv">1</span>, <span class="at">inset =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>),</span>
 <span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> method_cols, <span class="at">legend =</span> method_labs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Interpretation: habitat, year-day and latitude are expected to separate out; extraction method should not — homogenate and lysate points should be thoroughly mixed. A formal test (PERMANOVA, not shown here) confirms this on our data: extraction method explains only ~0.3% of the variance in community composition, versus ~5-6% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do from here on, is reasonable.</p>
+<p>Interpretation: habitat, year-day and latitude are expected to separate out; extraction method should not — homogenate and lysate points should be thoroughly mixed. A formal test (PERMANOVA, not shown here) confirms this on our data: extraction method explains only ~0.3% of the variance in community composition, versus ~4% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do from here on, is reasonable.</p>
 <hr>
 <p><a href="./tutorial-03-map.html">← Previous</a> · <a href="./tutorial.html">Overview</a> · <a href="./tutorial-05-shannon.html">Next →</a></p>
 
