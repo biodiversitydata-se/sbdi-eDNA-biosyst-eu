@@ -5,20 +5,9 @@ format:
     toc: false
 ---
 
-Welcome to the **Exploring eDNA in SBDI** workshop at
-[BioSyst EU 2026](https://www.biosyst.eu/2026){target="_blank"}, Uppsala, 17–19 August 2026!
-
-## Description
-
-This workshop demonstrates how eDNA/metabarcoding data can be accessed, processed and analysed within the [Swedish Biodiversity Data Infrastructure (SBDI)](https://biodiversitydata.se/){target="_blank"} — from data submission and processing through to exploring arthropod biodiversity patterns across Swedish habitat types, using COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"}.
-
-## Instructors
-- Dr. Maria Prager — SBDI & University of Gothenburg
-- Dr. Tobias Andermann — SBDI & Uppsala University
+Welcome to the **Exploring eDNA in SBDI** workshop at [BioSyst EU 2026](https://www.biosyst.eu/2026){target="_blank"}, Uppsala, 17–19 August 2026! This workshop demonstrates how eDNA/metabarcoding data can be accessed, processed and analysed within the [Swedish Biodiversity Data Infrastructure (SBDI)](https://biodiversitydata.se/){target="_blank"} — from data submission and processing through to exploring arthropod biodiversity patterns across Swedish habitat types, using COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"}.
 
 ## Agenda
-
-*Exact date and location within the conference: TBC*
 
 - **Introduction: SBDI's eDNA tools and workflows** (15 min)
   - From raw reads to ASVs: ENA submission, denoising with nf-core/ampliseq, the ASV portal and asvoccur
@@ -27,3 +16,7 @@ This workshop demonstrates how eDNA/metabarcoding data can be accessed, processe
 - **Hands-on tutorial: Import and analyse ASV portal data with R** (1 h)
   - Integrate ASV portal data with asvoccur
   - Explore arthropod biodiversity patterns across habitat types
+
+## Instructors
+- Dr. Maria Prager — SBDI & University of Gothenburg
+- Dr. Tobias Andermann — SBDI & Uppsala University
