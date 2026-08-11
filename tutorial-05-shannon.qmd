@@ -1,5 +1,5 @@
 ---
-title: "5. Within-sample diversity (alpha diversity)"
+title: "5. Alpha diversity (within-sample)"
 format:
   html:
     toc: false

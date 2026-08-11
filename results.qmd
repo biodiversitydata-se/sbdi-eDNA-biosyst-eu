@@ -25,7 +25,7 @@ format:
 
 ---
 
-### Within-sample diversity — alpha diversity (Shannon index)
+### Alpha diversity (within-sample) — Shannon index
 
 *Diversity within each sample, by habitat — complementing the between-sample (beta diversity) view above.*
 
