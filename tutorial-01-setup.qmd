@@ -38,7 +38,7 @@ data_path <- "/srv/course-data/"
 list.files(data_path)
 ```
 
-If the expected COI zip file(s) are listed, you are ready to proceed.
+If two (IBA_COI) zip files are listed, you are ready to proceed.
 
 ## Option B (fallback): Run RStudio locally on your laptop
 
