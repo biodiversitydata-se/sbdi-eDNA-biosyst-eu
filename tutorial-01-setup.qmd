@@ -34,7 +34,7 @@ library(lubridate)
 For this tutorial, ASV portal data is pre-downloaded and available on the virtual machine. Check access:
 
 ```r
-data_path <- "/srv/course-data/COI"
+data_path <- "/srv/course-data/"
 list.files(data_path)
 ```
 
