@@ -146,9 +146,7 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = method_cols, legend = method_labs)
 ```
 
-The PCoA plots suggest differences associated with habitat, sampling date and latitude, whereas homogenate and lysate samples are largely mixed. Pooling the two extraction methods in the following analyses seems reasonable, although extraction effects along other PCoA axes cannot be ruled out.
-
-Note: the first two PCoA axes each explain only about 3% of the variation. The plot therefore shows only a small part of the overall differences in community composition among samples.
+The first two PCoA axes each explain only about 3% of the variation, so the plots capture only part of the community differences. They suggest effects of habitat, sampling date and latitude, while homogenate and lysate samples are largely mixed. Pooling therefore seems reasonable, although effects along other axes cannot be ruled out.
 
 ---
 
