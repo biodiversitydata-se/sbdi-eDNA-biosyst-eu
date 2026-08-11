@@ -9,7 +9,7 @@ format:
 
 ### Load the dataset(s)
 
-Load the COI dataset(s) present in the `data_path` folder defined in the [previous section](tutorial-01-setup.qmd) — this works the same whether there is one dataset or several:
+Load the COI dataset(s) present in the `data_path` folder defined in the [previous section](tutorial-01-setup.qmd):
 
 ```r
 loaded <- load_data(data_path)
