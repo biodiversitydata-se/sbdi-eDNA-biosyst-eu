@@ -39,7 +39,7 @@
     "href": "index.html#agenda",
     "title": "Exploring eDNA in SBDI",
     "section": "Agenda",
-    "text": "Agenda\n\nIntroduction: SBDI’s eDNA tools and workflows (15 min; slides)\n\nFollow the workflow from raw sequence data to published ASV data\n\nHands-on tutorial: Analyse ASV portal data with R (1 h)\n\nIntegrate ASV portal data with asvoccur\nExplore arthropod biodiversity patterns across habitat types"
+    "text": "Agenda\n\nIntroduction: SBDI’s eDNA tools and workflows (15 min; slides)\nHands-on tutorial: Analyse ASV portal data with R (1 h)"
   },
   {
     "objectID": "index.html#instructors",
