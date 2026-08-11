@@ -9,11 +9,10 @@ Welcome to the **Exploring eDNA in SBDI** workshop at [BioSyst EU 2026](https://
 
 ## Agenda
 
-- **Introduction: SBDI's eDNA tools and workflows** (15 min)
-  - From raw reads to ASVs: ENA submission, denoising with nf-core/ampliseq, the ASV portal and asvoccur
-  - [Download slides (PDF)](slides-intro.pdf){target="_blank"}<br><br>
+- **Introduction: SBDI's eDNA tools and workflows** (15 min; [slides](slides-intro.pdf){target="_blank"})
+  - Follow the workflow from raw sequence data to published ASV data
 
-- **Hands-on tutorial: Import and analyse ASV portal data with R** (1 h)
+- **Hands-on tutorial: Analyse ASV portal data with R** (1 h)
   - Integrate ASV portal data with asvoccur
   - Explore arthropod biodiversity patterns across habitat types
 
