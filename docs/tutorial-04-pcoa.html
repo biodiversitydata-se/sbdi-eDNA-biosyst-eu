@@ -169,42 +169,57 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p><em>Analyse how community composition differs between samples — beta diversity — using a Spearman correlation-based dissimilarity and a Principal Coordinates Analysis (PCoA).</em></p>
+<p><em>Analyse differences in community composition between samples — beta diversity — using Spearman correlation-based dissimilarity and Principal Coordinates Analysis (PCoA).</em></p>
 <section id="aggregate-asvs-to-clusters" class="level3">
 <h3 class="anchored" data-anchor-id="aggregate-asvs-to-clusters">Aggregate ASVs to clusters</h3>
-<p><code>merged$counts</code> is indexed by individual ASV (hundreds of thousands of rows). To work with a more manageable set of clusters instead, we use cluster assignments already included in the data, in the <code>associatedSequences</code> column — read from <code>loaded</code>, not <code>merged</code>, since <code>merge_data()</code> drops that column when combining datasets.</p>
+<p>The IBA data include project-specific cluster assignments in the <code>associatedSequences</code> column, alongside more general sequence groupings such as BOLD BINs. Here, we use these assignments to aggregate the ASVs into a smaller set of clusters.</p>
+<p>The cluster assignments are read from <code>loaded</code>, because <code>merge_data()</code> drops the <code>associatedSequences</code> column when combining datasets.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>cluster_lookup <span class="ot">&lt;-</span> <span class="fu">unique</span>(data.table<span class="sc">::</span><span class="fu">rbindlist</span>(<span class="fu">lapply</span>(loaded<span class="sc">$</span>asvs, <span class="cf">function</span>(x)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  x[, .(taxonID, associatedSequences)])))</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>cluster_id <span class="ot">&lt;-</span> cluster_lookup<span class="sc">$</span>associatedSequences[<span class="fu">match</span>(<span class="fu">rownames</span>(merged<span class="sc">$</span>counts), cluster_lookup<span class="sc">$</span>taxonID)]</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Sanity check: every ASV should map to exactly one cluster - match() would</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># otherwise silently return the wrong cluster without warning</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">sum</span>(<span class="fu">is.na</span>(cluster_id)) <span class="sc">==</span> <span class="dv">0</span>, <span class="fu">anyDuplicated</span>(cluster_lookup<span class="sc">$</span>taxonID) <span class="sc">==</span> <span class="dv">0</span>)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>clevels <span class="ot">&lt;-</span> <span class="fu">unique</span>(cluster_id)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>cidx    <span class="ot">&lt;-</span> <span class="fu">match</span>(cluster_id, clevels)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>G <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">sparseMatrix</span>(<span class="at">i =</span> cidx, <span class="at">j =</span> <span class="fu">seq_along</span>(cluster_id), <span class="at">x =</span> <span class="dv">1</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                           <span class="at">dims =</span> <span class="fu">c</span>(<span class="fu">length</span>(clevels), <span class="fu">length</span>(cluster_id)))</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>cluster_counts <span class="ot">&lt;-</span> G <span class="sc">%*%</span> merged<span class="sc">$</span>counts</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(cluster_counts) <span class="ot">&lt;-</span> clevels</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(cluster_counts)  <span class="co"># a fraction of the original ASV count</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This alone reduces the row count considerably (e.g.&nbsp;~7-fold for the homogenate dataset), but some clusters can still be entirely zero within just the samples selected by <code>ix</code> (e.g.&nbsp;clusters only present in other samples). Left in, those constant rows add a block of tied ranks to the Spearman correlation below, which can shift the ranking — and therefore the correlation — of the real values. <code>ix</code> is the balanced, pooled sample set from <a href="./tutorial-03-map.html">step 3</a>:</p>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>cluster_id <span class="ot">&lt;-</span> cluster_lookup<span class="sc">$</span>associatedSequences[</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">match</span>(<span class="fu">rownames</span>(merged<span class="sc">$</span>counts), cluster_lookup<span class="sc">$</span>taxonID)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Check that every ASV maps to one cluster</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>(<span class="fu">is.na</span>(cluster_id)) <span class="sc">==</span> <span class="dv">0</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anyDuplicated</span>(cluster_lookup<span class="sc">$</span>taxonID) <span class="sc">==</span> <span class="dv">0</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>clevels <span class="ot">&lt;-</span> <span class="fu">unique</span>(cluster_id)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>cidx    <span class="ot">&lt;-</span> <span class="fu">match</span>(cluster_id, clevels)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>G <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">sparseMatrix</span>(</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">i =</span> cidx,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">j =</span> <span class="fu">seq_along</span>(cluster_id),</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="dv">1</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">dims =</span> <span class="fu">c</span>(<span class="fu">length</span>(clevels), <span class="fu">length</span>(cluster_id))</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>cluster_counts <span class="ot">&lt;-</span> G <span class="sc">%*%</span> merged<span class="sc">$</span>counts</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(cluster_counts) <span class="ot">&lt;-</span> clevels</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(cluster_counts)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This considerably reduces the size of the count table. We then subset the cluster-level table to the samples selected in <a href="./tutorial-03-map.html">step 3</a> and remove clusters that are absent from all of these samples. Such all-zero rows contain no information for comparing the selected samples.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>counts_filt <span class="ot">&lt;-</span> cluster_counts[, ix, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>counts_filt <span class="ot">&lt;-</span> counts_filt[Matrix<span class="sc">::</span><span class="fu">rowSums</span>(counts_filt) <span class="sc">&gt;</span> <span class="dv">0</span>, , drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>counts_filt <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(counts_filt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="calculate-a-spearman-based-dissimilarity" class="level3">
 <h3 class="anchored" data-anchor-id="calculate-a-spearman-based-dissimilarity">Calculate a Spearman-based dissimilarity</h3>
+<p>Spearman correlation measures similarity in the rank order of cluster abundances between samples. We convert it to a 0–1 dissimilarity, where 0 indicates identical rankings and 1 opposite rankings:”</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>spear_cor  <span class="ot">&lt;-</span> <span class="fu">cor</span>(counts_filt, <span class="at">method =</span> <span class="st">"spearman"</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>spear_dist <span class="ot">&lt;-</span> (<span class="sc">-</span><span class="dv">1</span> <span class="sc">*</span> spear_cor <span class="sc">+</span> <span class="dv">1</span>) <span class="sc">/</span> <span class="dv">2</span>   <span class="co"># rescale correlation to a 0-1 dissimilarity</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>spear_dist <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> spear_cor) <span class="sc">/</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="run-pcoa" class="level3">
 <h3 class="anchored" data-anchor-id="run-pcoa">Run PCoA</h3>
+<p>Principal Coordinates Analysis (PCoA) represents the dissimilarities among samples in a smaller number of dimensions. We use a Cailliez correction because the Spearman-based dissimilarities are not necessarily Euclidean:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>pcoa_res <span class="ot">&lt;-</span> <span class="fu">pcoa</span>(spear_dist, <span class="at">correction =</span> <span class="st">"cailliez"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="prepare-colour-scales" class="level3">
 <h3 class="anchored" data-anchor-id="prepare-colour-scales">Prepare colour scales</h3>
-<p><code>color_habitat</code>/<code>habitat_cols</code> were already built in <a href="./tutorial-03-map.html">step 3</a>. We add two continuous colour scales — sized to the actual range of year-days/latitudes present, not a fixed 1-366/full-latitude range, so the palette isn’t wasted on values that don’t occur — plus a colour pair for extraction method:</p>
+<p><code>color_habitat</code> and <code>habitat_cols</code> were already created in <a href="./tutorial-03-map.html">step 3</a>. We add continuous colour scales for sampling date and latitude, plus colours for the two extraction methods:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ramp <span class="ot">&lt;-</span> <span class="fu">colorRampPalette</span>(<span class="fu">rev</span>(<span class="fu">c</span>(</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"#D73027"</span>, <span class="st">"#FC8D59"</span>, <span class="st">"#FEE090"</span>, <span class="st">"#FFFFBF"</span>, <span class="st">"#E0F3F8"</span>, <span class="st">"#91BFDB"</span>, <span class="st">"#4575B4"</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>)))</span>
@@ -218,17 +233,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>lat_index <span class="ot">&lt;-</span> <span class="fu">round</span>(lat) <span class="sc">-</span> <span class="fu">min</span>(lat_range) <span class="sc">+</span> <span class="dv">1</span></span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>method      <span class="ot">&lt;-</span> dataset_id[ix]</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>method_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">IBA_CO1_homogenate_2019_SE =</span> <span class="st">"#e76f51"</span>, <span class="at">IBA_CO1_lysate_2019_SE =</span> <span class="st">"#2a9d8f"</span>)</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>method_labs <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">IBA_CO1_homogenate_2019_SE =</span> <span class="st">"homogenate"</span>, <span class="at">IBA_CO1_lysate_2019_SE =</span> <span class="st">"lysate"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Latitude legend ticks use a fixed 2-degree step. Year-day uses month names instead, which are easier to read than a numeric day-of-year and adapt automatically to whatever period the data covers:</p>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>method_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">IBA_CO1_homogenate_2019_SE =</span> <span class="st">"#e76f51"</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">IBA_CO1_lysate_2019_SE =</span> <span class="st">"#2a9d8f"</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>method_labs <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">IBA_CO1_homogenate_2019_SE =</span> <span class="st">"homogenate"</span>,</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">IBA_CO1_lysate_2019_SE =</span> <span class="st">"lysate"</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For the legends, latitude is shown at 2-degree intervals and sampling date by month:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>lat_ticks <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">ceiling</span>(<span class="fu">min</span>(lat_range) <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="dv">2</span>, <span class="fu">max</span>(lat_range), <span class="at">by =</span> <span class="dv">2</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>month_ticks  <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">tapply</span>(yday[ix], month[ix], min))  <span class="co"># year-day of each month's first sample</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>month_ticks  <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">tapply</span>(yday[ix], month[ix], min))</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>month_labels <span class="ot">&lt;-</span> month.abb[<span class="fu">as.integer</span>(<span class="fu">names</span>(month_ticks))]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="plot-pcoa-results" class="level3">
 <h3 class="anchored" data-anchor-id="plot-pcoa-results">Plot PCoA results</h3>
-<p>We plot samples in PCoA space using the first two axes, once per colour variable — year-day, habitat, latitude, and extraction method:</p>
+<p>We plot the same PCoA four times, colouring samples by sampling date, habitat, latitude and extraction method:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC1 ("</span>, <span class="fu">round</span>(pcoa_res<span class="sc">$</span>values<span class="sc">$</span>Rel_corr_eig[<span class="dv">1</span>] <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%)"</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ylab <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC2 ("</span>, <span class="fu">round</span>(pcoa_res<span class="sc">$</span>values<span class="sc">$</span>Rel_corr_eig[<span class="dv">2</span>] <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%)"</span>)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -263,7 +284,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> xlab, <span class="at">ylab =</span> ylab, <span class="at">main =</span> <span class="st">"Colour by extraction method"</span>)</span>
 <span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"bottomleft"</span>, <span class="at">bty =</span> <span class="st">"n"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="dv">1</span>, <span class="at">inset =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>),</span>
 <span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> method_cols, <span class="at">legend =</span> method_labs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Interpretation: habitat, year-day and latitude are expected to separate out; extraction method should not — homogenate and lysate points should be thoroughly mixed. A formal test (PERMANOVA, not shown here) confirms this on our data: extraction method explains only ~0.3% of the variance in community composition, versus ~4% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do from here on, is reasonable.</p>
+<p>The PCoA plots suggest differences associated with habitat, sampling date and latitude, whereas homogenate and lysate samples are largely mixed. This suggests that pooling the two extraction methods in the following analyses is reasonable.</p>
 <hr>
 <p><a href="./tutorial-03-map.html">← Previous</a> · <a href="./tutorial.html">Overview</a> · <a href="./tutorial-05-shannon.html">Next →</a></p>
 

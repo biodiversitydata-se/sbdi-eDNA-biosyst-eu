@@ -5,31 +5,45 @@ format:
     toc: false
 ---
 
-*Analyse how community composition differs between samples — beta diversity — using a Spearman correlation-based dissimilarity and a Principal Coordinates Analysis (PCoA).*
+*Analyse differences in community composition between samples — beta diversity — using Spearman correlation-based dissimilarity and Principal Coordinates Analysis (PCoA).*
 
 ### Aggregate ASVs to clusters
 
-`merged$counts` is indexed by individual ASV (hundreds of thousands of rows). To work with a more manageable set of clusters instead, we use cluster assignments already included in the data, in the `associatedSequences` column — read from `loaded`, not `merged`, since `merge_data()` drops that column when combining datasets.
+The IBA data include project-specific cluster assignments in the `associatedSequences` column, alongside more general sequence groupings such as BOLD BINs. Here, we use these assignments to aggregate the ASVs into a smaller set of clusters.
+
+The cluster assignments are read from `loaded`, because `merge_data()` drops the `associatedSequences` column when combining datasets.
 
 ```r
 cluster_lookup <- unique(data.table::rbindlist(lapply(loaded$asvs, function(x)
   x[, .(taxonID, associatedSequences)])))
-cluster_id <- cluster_lookup$associatedSequences[match(rownames(merged$counts), cluster_lookup$taxonID)]
 
-# Sanity check: every ASV should map to exactly one cluster - match() would
-# otherwise silently return the wrong cluster without warning
-stopifnot(sum(is.na(cluster_id)) == 0, anyDuplicated(cluster_lookup$taxonID) == 0)
+cluster_id <- cluster_lookup$associatedSequences[
+  match(rownames(merged$counts), cluster_lookup$taxonID)
+]
+
+# Check that every ASV maps to one cluster
+stopifnot(
+  sum(is.na(cluster_id)) == 0,
+  anyDuplicated(cluster_lookup$taxonID) == 0
+)
 
 clevels <- unique(cluster_id)
 cidx    <- match(cluster_id, clevels)
-G <- Matrix::sparseMatrix(i = cidx, j = seq_along(cluster_id), x = 1,
-                           dims = c(length(clevels), length(cluster_id)))
+
+G <- Matrix::sparseMatrix(
+  i = cidx,
+  j = seq_along(cluster_id),
+  x = 1,
+  dims = c(length(clevels), length(cluster_id))
+)
+
 cluster_counts <- G %*% merged$counts
 rownames(cluster_counts) <- clevels
-nrow(cluster_counts)  # a fraction of the original ASV count
+
+nrow(cluster_counts)
 ```
 
-This alone reduces the row count considerably (e.g. ~7-fold for the homogenate dataset), but some clusters can still be entirely zero within just the samples selected by `ix` (e.g. clusters only present in other samples). Left in, those constant rows add a block of tied ranks to the Spearman correlation below, which can shift the ranking — and therefore the correlation — of the real values. `ix` is the balanced, pooled sample set from [step 3](tutorial-03-map.qmd):
+This considerably reduces the size of the count table. We then subset the cluster-level table to the samples selected in [step 3](./tutorial-03-map.html) and remove clusters that are absent from all of these samples. Such all-zero rows contain no information for comparing the selected samples.
 
 ```r
 counts_filt <- cluster_counts[, ix, drop = FALSE]
@@ -39,12 +53,16 @@ counts_filt <- as.matrix(counts_filt)
 
 ### Calculate a Spearman-based dissimilarity
 
+Spearman correlation measures similarity in the rank order of cluster abundances between samples. We convert it to a 0–1 dissimilarity, where 0 indicates identical rankings and 1 opposite rankings:”
+
 ```r
 spear_cor  <- cor(counts_filt, method = "spearman")
-spear_dist <- (-1 * spear_cor + 1) / 2   # rescale correlation to a 0-1 dissimilarity
+spear_dist <- (1 - spear_cor) / 2
 ```
 
 ### Run PCoA
+
+Principal Coordinates Analysis (PCoA) represents the dissimilarities among samples in a smaller number of dimensions. We use a Cailliez correction because the Spearman-based dissimilarities are not necessarily Euclidean:
 
 ```r
 pcoa_res <- pcoa(spear_dist, correction = "cailliez")
@@ -52,7 +70,7 @@ pcoa_res <- pcoa(spear_dist, correction = "cailliez")
 
 ### Prepare colour scales
 
-`color_habitat`/`habitat_cols` were already built in [step 3](tutorial-03-map.qmd). We add two continuous colour scales — sized to the actual range of year-days/latitudes present, not a fixed 1-366/full-latitude range, so the palette isn't wasted on values that don't occur — plus a colour pair for extraction method:
+`color_habitat` and `habitat_cols` were already created in [step 3](tutorial-03-map.qmd). We add continuous colour scales for sampling date and latitude, plus colours for the two extraction methods:
 
 ```r
 ramp <- colorRampPalette(rev(c(
@@ -68,22 +86,28 @@ color_lat <- ramp(length(lat_range))
 lat_index <- round(lat) - min(lat_range) + 1
 
 method      <- dataset_id[ix]
-method_cols <- c(IBA_CO1_homogenate_2019_SE = "#e76f51", IBA_CO1_lysate_2019_SE = "#2a9d8f")
-method_labs <- c(IBA_CO1_homogenate_2019_SE = "homogenate", IBA_CO1_lysate_2019_SE = "lysate")
+method_cols <- c(
+  IBA_CO1_homogenate_2019_SE = "#e76f51",
+  IBA_CO1_lysate_2019_SE = "#2a9d8f"
+)
+method_labs <- c(
+  IBA_CO1_homogenate_2019_SE = "homogenate",
+  IBA_CO1_lysate_2019_SE = "lysate"
+)
 ```
 
-Latitude legend ticks use a fixed 2-degree step. Year-day uses month names instead, which are easier to read than a numeric day-of-year and adapt automatically to whatever period the data covers:
+For the legends, latitude is shown at 2-degree intervals and sampling date by month:
 
 ```r
 lat_ticks <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
 
-month_ticks  <- sort(tapply(yday[ix], month[ix], min))  # year-day of each month's first sample
+month_ticks  <- sort(tapply(yday[ix], month[ix], min))
 month_labels <- month.abb[as.integer(names(month_ticks))]
 ```
 
 ### Plot PCoA results
 
-We plot samples in PCoA space using the first two axes, once per colour variable — year-day, habitat, latitude, and extraction method:
+We plot the same PCoA four times, colouring samples by sampling date, habitat, latitude and extraction method:
 
 ```r
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
@@ -122,7 +146,7 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = method_cols, legend = method_labs)
 ```
 
-Interpretation: habitat, year-day and latitude are expected to separate out; extraction method should not — homogenate and lysate points should be thoroughly mixed. A formal test (PERMANOVA, not shown here) confirms this on our data: extraction method explains only ~0.3% of the variance in community composition, versus ~4% for habitat — small enough that pooling homogenate and lysate samples by habitat, as we do from here on, is reasonable.
+The PCoA plots suggest differences associated with habitat, sampling date and latitude, whereas homogenate and lysate samples are largely mixed. This suggests that pooling the two extraction methods in the following analyses is reasonable.
 
 ---
 
