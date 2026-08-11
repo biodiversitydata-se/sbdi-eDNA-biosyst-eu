@@ -32,14 +32,14 @@
     "href": "index.html",
     "title": "Exploring eDNA in SBDI",
     "section": "",
-    "text": "Welcome to the Exploring eDNA in SBDI workshop at BioSyst EU 2026, Uppsala, 17–19 August 2026!"
+    "text": "Welcome to the Exploring eDNA in SBDI workshop at BioSyst EU 2026, Uppsala, 17–19 August 2026! This workshop demonstrates how eDNA/metabarcoding data can be accessed, processed and analysed within the Swedish Biodiversity Data Infrastructure (SBDI) — from data submission and processing through to exploring arthropod biodiversity patterns across Swedish habitat types, using COI metabarcoding data from the Insect Biome Atlas."
   },
   {
-    "objectID": "index.html#description",
-    "href": "index.html#description",
+    "objectID": "index.html#agenda",
+    "href": "index.html#agenda",
     "title": "Exploring eDNA in SBDI",
-    "section": "Description",
-    "text": "Description\nThis workshop demonstrates how eDNA/metabarcoding data can be accessed, processed and analysed within the Swedish Biodiversity Data Infrastructure (SBDI) — from data submission and processing through to exploring arthropod biodiversity patterns across Swedish habitat types, using COI metabarcoding data from the Insect Biome Atlas."
+    "section": "Agenda",
+    "text": "Agenda\n\nIntroduction: SBDI’s eDNA tools and workflows (15 min)\n\nFrom raw reads to ASVs: ENA submission, denoising with nf-core/ampliseq, the ASV portal and asvoccur\nDownload slides (PDF)\n\nHands-on tutorial: Import and analyse ASV portal data with R (1 h)\n\nIntegrate ASV portal data with asvoccur\nExplore arthropod biodiversity patterns across habitat types"
   },
   {
     "objectID": "index.html#instructors",
@@ -47,13 +47,6 @@
     "title": "Exploring eDNA in SBDI",
     "section": "Instructors",
     "text": "Instructors\n\nDr. Maria Prager — SBDI & University of Gothenburg\nDr. Tobias Andermann — SBDI & Uppsala University"
-  },
-  {
-    "objectID": "index.html#agenda",
-    "href": "index.html#agenda",
-    "title": "Exploring eDNA in SBDI",
-    "section": "Agenda",
-    "text": "Agenda\nExact date and location within the conference: TBC\n\nIntroduction: SBDI’s eDNA tools and workflows (15 min)\n\nFrom raw reads to ASVs: ENA submission, denoising with nf-core/ampliseq, the ASV portal and asvoccur\nDownload slides (PDF)\n\nHands-on tutorial: Import and analyse ASV portal data with R (1 h)\n\nIntegrate ASV portal data with asvoccur\nExplore arthropod biodiversity patterns across habitat types"
   },
   {
     "objectID": "tutorial-04-pcoa.html",
