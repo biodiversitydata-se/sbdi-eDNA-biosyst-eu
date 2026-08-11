@@ -107,6 +107,10 @@ cluster_lookup <- unique(data.table::rbindlist(lapply(loaded$asvs, function(x)
   x[, .(taxonID, associatedSequences)])))
 cluster_id <- cluster_lookup$associatedSequences[match(rownames(merged$counts), cluster_lookup$taxonID)]
 
+# Sanity check: every ASV should map to exactly one cluster - match() would
+# otherwise silently return the wrong cluster without warning
+stopifnot(sum(is.na(cluster_id)) == 0, anyDuplicated(cluster_lookup$taxonID) == 0)
+
 clevels <- unique(cluster_id)
 cidx    <- match(cluster_id, clevels)
 G <- Matrix::sparseMatrix(i = cidx, j = seq_along(cluster_id), x = 1,
