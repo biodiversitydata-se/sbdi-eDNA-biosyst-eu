@@ -100,13 +100,12 @@ In this option, example data is downloaded directly from the ASV portal.
 4. Place both zip files in a single folder, e.g.:
 
        course-data/
-       └── COI/
-           ├── IBA_CO1_homogenate_2019_SE.zip
-           └── IBA_CO1_lysate_2019_SE.zip
+       ├── IBA_CO1_homogenate_2019_SE.zip
+       └── IBA_CO1_lysate_2019_SE.zip
 
 5. Set the path to the data folder in R and confirm access:
 ```r
-data_path <- "local/path/to/course-data/COI"
+data_path <- "local/path/to/course-data"
 list.files(data_path)
 ```
 
