@@ -21,7 +21,9 @@ Samples are ordered consistently across tables — `rownames(merged_df$events)`,
 
 ### Extract spatial and temporal variables
 
-`eventDate` is stored as a `start/end` interval string, so we parse the start date explicitly rather than passing it straight to `month()`/`yday()`. A few samples have only a bare year with no month or day — `parse_date_time()` leaves those as `NA` rather than guessing, so they're excluded downstream instead of getting a misleading date:
+Latitude and longitude can be used directly, whereas `eventDate` requires some preparation because dates in these two datasets are stored as `start/end` intervals. We therefore first extract the start of each interval before calculating month and day of year.
+
+A few records only contain a year and no exact date. These cannot be assigned a month or day of year, so they are left as `NA`. We will exclude these records later when filtering the samples used in the analyses.
 
 ```r
 lat   <- as.numeric(merged_df$events$decimalLatitude)
@@ -122,7 +124,7 @@ legend("bottomleft", bty = "o", bg = "white", legend = names(habitat_cols),
 Many samples share the same, or a nearby, physical site (repeated visits over the season) — the small amount of jitter above spreads them into a visible cluster instead of hiding them behind a single point.
 
 ::: {.callout-note}
-**Spatial autocorrelation.** Many sample sites are close together (within ~10-15 km), so nearby samples are likely to share a regional species pool independent of habitat — beyond the scope of this tutorial, but worth keeping in mind before drawing strong conclusions about habitat effects from the PCoA in the next step.
+**Spatial autocorrelation.** Many sampling sites are close together (~10–15 km apart), so nearby samples may be similar regardless of habitat. Keep this in mind when interpreting habitat patterns in the PCoA.
 :::
 
 ---

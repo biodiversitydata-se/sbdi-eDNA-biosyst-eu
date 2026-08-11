@@ -179,7 +179,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="extract-spatial-and-temporal-variables" class="level3">
 <h3 class="anchored" data-anchor-id="extract-spatial-and-temporal-variables">Extract spatial and temporal variables</h3>
-<p><code>eventDate</code> is stored as a <code>start/end</code> interval string, so we parse the start date explicitly rather than passing it straight to <code>month()</code>/<code>yday()</code>. A few samples have only a bare year with no month or day — <code>parse_date_time()</code> leaves those as <code>NA</code> rather than guessing, so they’re excluded downstream instead of getting a misleading date:</p>
+<p>Latitude and longitude can be used directly, whereas <code>eventDate</code> requires some preparation because dates in these two datasets are stored as <code>start/end</code> intervals. We therefore first extract the start of each interval before calculating month and day of year.</p>
+<p>A few records only contain a year and no exact date. These cannot be assigned a month or day of year, so they are left as <code>NA</code>. We will exclude these records later when filtering the samples used in the analyses.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>lat   <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(merged_df<span class="sc">$</span>events<span class="sc">$</span>decimalLatitude)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>lon   <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(merged_df<span class="sc">$</span>events<span class="sc">$</span>decimalLongitude)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -262,7 +263,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Spatial autocorrelation.</strong> Many sample sites are close together (within ~10-15 km), so nearby samples are likely to share a regional species pool independent of habitat — beyond the scope of this tutorial, but worth keeping in mind before drawing strong conclusions about habitat effects from the PCoA in the next step.</p>
+<p><strong>Spatial autocorrelation.</strong> Many sampling sites are close together (~10–15 km apart), so nearby samples may be similar regardless of habitat. Keep this in mind when interpreting habitat patterns in the PCoA.</p>
 </div>
 </div>
 <hr>
