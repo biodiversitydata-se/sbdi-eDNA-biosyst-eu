@@ -9,7 +9,7 @@ format:
 
 ### Define the barplot function
 
-The function below aggregates monthly averages within each habitat type and plots stacked barplots for the top taxa. Note the explicit `Matrix::` prefix on `rowMeans()`: loading `rworldmap` (in [step 1](tutorial-01-setup.qmd)) pulls in a package that redefines the generic in a way that breaks dispatch for sparse matrices, so relying on the bare function silently produces "'x' must be an array of at least two dimensions" errors here.
+The function below aggregates monthly averages within each habitat type and plots stacked barplots for the top taxa.
 
 ```r
 plot_barplots <- function(rank, size_taxa = -1, main = "", top_x = 10) {
