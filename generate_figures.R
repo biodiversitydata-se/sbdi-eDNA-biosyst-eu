@@ -95,20 +95,17 @@ legend("bottomleft", bty = "o", bg = "white", legend = names(habitat_cols),
        title = "Habitat")
 dev.off()
 
-# ── Tutorial 4: PCoA (Spearman, following iba_microbiome.R) ──────────────────
+# ── Tutorial 4: PCoA (Spearman-based dissimilarity) ───────────────────────────
 
-# Necessary adaptation: aggregate ASVs to clusters using the same cluster
-# assignments as the original analysis. Read from loaded$asvs, not
-# merged$asvs: merge_data() only restricts columns (dropping
-# associatedSequences) when it actually merges 2+ datasets - with a single
-# dataset, Reduce() never calls the merge function and the column survives
-# by accident, so relying on merged$asvs here would break silently later
+# The IBA data include project-specific cluster assignments in
+# associatedSequences, alongside more general sequence groupings such as
+# BOLD BINs. Read from loaded, not merged: merge_data() drops that column
+# when combining datasets
 cluster_lookup <- unique(data.table::rbindlist(lapply(loaded$asvs, function(x)
   x[, .(taxonID, associatedSequences)])))
 cluster_id <- cluster_lookup$associatedSequences[match(rownames(merged$counts), cluster_lookup$taxonID)]
 
-# Sanity check: every ASV should map to exactly one cluster - match() would
-# otherwise silently return the wrong cluster without warning
+# Check that every ASV maps to one cluster
 stopifnot(sum(is.na(cluster_id)) == 0, anyDuplicated(cluster_lookup$taxonID) == 0)
 
 clevels <- unique(cluster_id)
@@ -119,15 +116,18 @@ cluster_counts <- G %*% merged$counts
 rownames(cluster_counts) <- clevels
 message(nrow(cluster_counts), " clusters (from ", nrow(merged$counts), " ASVs)")
 
-# Drop clusters that are entirely zero within ix - left in, they add a block
-# of tied ranks to the Spearman correlation below and can shift sample rankings
+# Subset to ix, then remove clusters absent from all of these samples - such
+# all-zero rows contain no information for comparing the selected samples
 counts_filt <- cluster_counts[, ix, drop = FALSE]
 counts_filt <- counts_filt[Matrix::rowSums(counts_filt) > 0, , drop = FALSE]
 counts_filt <- as.matrix(counts_filt)
 
+# Spearman correlation measures similarity in rank order of cluster
+# abundances between samples; convert to a 0-1 dissimilarity
 spear_cor  <- cor(counts_filt, method = "spearman")
-spear_dist <- (-1 * spear_cor + 1) / 2
+spear_dist <- (1 - spear_cor) / 2
 
+# Cailliez correction since the dissimilarities are not necessarily Euclidean
 pcoa_res <- pcoa(spear_dist, correction = "cailliez")
 
 ramp <- colorRampPalette(rev(c(
@@ -142,10 +142,7 @@ lat_range <- floor(min(lat[ix], na.rm = TRUE)):ceiling(max(lat[ix], na.rm = TRUE
 color_lat <- ramp(length(lat_range))
 lat_index <- round(lat) - min(lat_range) + 1
 
-# Latitude legend matches the original analysis's fixed 2-degree step.
-# Year-day uses month names instead of a numeric step: point colour still
-# varies continuously by day, but month starts are easier to read and
-# adapt automatically to whatever period the data covers
+# Latitude shown at 2-degree intervals; sampling date by month
 lat_ticks <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
 
 month_ticks  <- sort(tapply(yday[ix], month[ix], min))
@@ -201,8 +198,10 @@ boxplot(shannon ~ habitat[ix], las = 2, xlab = "",
 dev.off()
 
 # ── Tutorial 6: Barplots ──────────────────────────────────────────────────────
-# Uses the same ix as steps 3-4, so barplots reflect the balanced, pooled
-# sample set rather than every sample loaded
+# Identifies the most abundant taxa across the selected samples, calculates
+# their mean relative abundance for each habitat and month, and displays the
+# results as stacked barplots. Uses the same ix as steps 3-5, so barplots
+# reflect the balanced, pooled sample set rather than every sample loaded
 
 plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
   mycols <- colorRampPalette(c(
@@ -210,26 +209,62 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
     "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00",
     "#cab2d6", "#6a3d9a", "#ffff99", "#b15928"
   ))
+
   habitats <- names(habitat_cols)
   par(mfrow = c(length(habitats), 1), mar = c(2, 3, 2, 14), xpd = TRUE)
-  ok <- sort(Matrix::rowMeans(cladecounts$norm[[rank]][, ix]),
-             index.return = TRUE, decreasing = TRUE)$ix[1:top_x]
-  if (size_taxa == -1) { size_taxa <- min(1.5, 8 / length(ok)) }
+
+  # Select the most abundant taxa across the samples retained in step 3
+  ok <- sort(
+    Matrix::rowMeans(cladecounts$norm[[rank]][, ix]),
+    index.return = TRUE,
+    decreasing = TRUE
+  )$ix[1:top_x]
+
+  if (size_taxa == -1) {
+    size_taxa <- min(1.5, 8 / length(ok))
+  }
+
   for (hab in habitats) {
     ix_hab <- intersect(ix, which(habitat == hab))
-    monthly_averages_matr <- matrix(ncol = 12,
-                                    nrow = nrow(cladecounts$norm[[rank]]))
+
+    monthly_averages_matr <- matrix(
+      ncol = 12,
+      nrow = nrow(cladecounts$norm[[rank]])
+    )
+
     for (j in 1:12) {
       ix2 <- intersect(ix_hab, which(month == j))
-      if (length(ix2) > 1) monthly_averages_matr[, j] <- Matrix::rowMeans(cladecounts$norm[[rank]][, ix2])
-      if (length(ix2) == 1) monthly_averages_matr[, j] <- cladecounts$norm[[rank]][, ix2]
-      if (length(ix2) == 0) monthly_averages_matr[, j] <- 0
+
+      if (length(ix2) > 1) {
+        monthly_averages_matr[, j] <-
+          Matrix::rowMeans(cladecounts$norm[[rank]][, ix2])
+      }
+
+      if (length(ix2) == 1) {
+        monthly_averages_matr[, j] <-
+          cladecounts$norm[[rank]][, ix2]
+      }
+
+      if (length(ix2) == 0) {
+        monthly_averages_matr[, j] <- 0
+      }
     }
-    barplot(monthly_averages_matr[ok, ], col = mycols(length(ok)), main = hab)
-    legend("bottomleft", bty = "n", pch = 19,
-           col    = mycols(length(ok))[length(ok):1],
-           cex    = size_taxa, inset = c(1, 0),
-           legend = rownames(cladecounts$norm[[rank]])[rev(ok)])
+
+    barplot(
+      monthly_averages_matr[ok, ],
+      col = mycols(length(ok)),
+      main = hab
+    )
+
+    legend(
+      "bottomleft",
+      bty = "n",
+      pch = 19,
+      col = mycols(length(ok))[length(ok):1],
+      cex = size_taxa,
+      inset = c(1, 0),
+      legend = rownames(cladecounts$norm[[rank]])[rev(ok)]
+    )
   }
 }
 
