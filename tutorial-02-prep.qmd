@@ -35,11 +35,12 @@ To see the full function documentation for `load_data`:
 
 ### Merge the dataset(s)
 
-`merge_data()` combines the loaded dataset(s) into a single set of objects, with the same structure as `loaded` above:
+Next, we merge the datasets in order to analyse them jointly:
 
 ```r
 merged <- merge_data(loaded)
 ```
+The `merged` object is a list with one combined object per data type (`counts`, `events`, `asvs`, `datasets`, `emof`), represented as a sparse matrix for count data and data tables for metadata, as in `loaded`.
 
 ---
 
@@ -51,7 +52,7 @@ Convert the metadata tables to data frame format for convenience. `merged$counts
 merged_df <- convert_to_df(merged)
 ```
 
-To inspect the sample names:
+In `merged_df$counts`, each row corresponds to an ASV and each column to a sample. To inspect the sample names:
 
 ```r
 colnames(merged$counts)
