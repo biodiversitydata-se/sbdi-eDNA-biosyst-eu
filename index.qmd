@@ -10,7 +10,7 @@ Welcome to the **Exploring eDNA in SBDI** workshop at [BioSyst EU 2026](https://
 ## Agenda
 
 - Introduction: SBDI's eDNA tools and workflows (15 min; [slides](slides-intro.pdf){target="_blank"})
-- Hands-on tutorial: Analyse ASV portal data with R (1 h)
+- [Hands-on tutorial](tutorial.qmd): Analyse ASV portal data with R (1 h)
 
 ## Instructors
 - Dr. Maria Prager — SBDI & University of Gothenburg
