@@ -1,5 +1,5 @@
 ---
-title: "4. Community composition (beta diversity)"
+title: "4. Community differences (beta diversity)"
 format:
   html:
     toc: false
