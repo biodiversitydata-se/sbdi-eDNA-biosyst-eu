@@ -5,7 +5,7 @@ format:
     toc: false
 ---
 
-This tutorial walks through the main steps needed to integrate ASV portal data in R and explore biodiversity patterns. As a case study, we use COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"} (IBA) project, which sampled arthropods at 200 Swedish sites across six habitat types (forest, cropland, wetland, grassland, urban, alpine). We combine two Malaise-trap datasets extracted with different protocols — homogenate and a downsampled subset of lysate — to examine community composition across habitats.
+This tutorial walks through the main steps for importing and analysing ASV portal data in R. As a case study, we use COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"} (IBA) project, which sampled arthropods at 200 sites across six habitat types in Sweden (forest, cropland, wetland, grassland, urban and alpine). We combine two Malaise-trap datasets generated using different extraction protocols — homogenate and lysate — to explore biodiversity patterns across habitats.
 
 1. [Environment setup](tutorial-01-setup.qmd) — Access the workshop RStudio environment (or run locally)
 2. [Data preparation](tutorial-02-prep.qmd) — Load, merge and aggregate data sourced from the ASV portal
