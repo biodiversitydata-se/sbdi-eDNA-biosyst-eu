@@ -148,6 +148,8 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
 
 The PCoA plots suggest differences associated with habitat, sampling date and latitude, whereas homogenate and lysate samples are largely mixed. This suggests that pooling the two extraction methods in the following analyses is reasonable.
 
+Note: the first two PCoA axes each explain only about 3% of the variation. The plot therefore shows only a small part of the overall differences in community composition among samples.
+
 ---
 
 [← Previous](tutorial-03-map.qmd) · [Overview](tutorial.qmd) · [Next →](tutorial-05-shannon.qmd)
