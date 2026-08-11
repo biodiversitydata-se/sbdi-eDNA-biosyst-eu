@@ -115,7 +115,11 @@ cluster_counts <- G %*% merged$counts
 rownames(cluster_counts) <- clevels
 message(nrow(cluster_counts), " clusters (from ", nrow(merged$counts), " ASVs)")
 
-counts_filt <- as.matrix(cluster_counts[, ix])
+# Drop clusters that are entirely zero within ix - left in, they add a block
+# of tied ranks to the Spearman correlation below and can shift sample rankings
+counts_filt <- cluster_counts[, ix, drop = FALSE]
+counts_filt <- counts_filt[Matrix::rowSums(counts_filt) > 0, , drop = FALSE]
+counts_filt <- as.matrix(counts_filt)
 
 spear_cor  <- cor(counts_filt, method = "spearman")
 spear_dist <- (-1 * spear_cor + 1) / 2

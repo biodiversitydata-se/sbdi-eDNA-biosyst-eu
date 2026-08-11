@@ -25,10 +25,12 @@ rownames(cluster_counts) <- clevels
 nrow(cluster_counts)  # a fraction of the original ASV count
 ```
 
-This alone reduces the row count enough (e.g. ~7-fold for the homogenate dataset) that no further filtering is needed. `ix` is the balanced, pooled sample set from [step 3](tutorial-03-map.qmd):
+This alone reduces the row count considerably (e.g. ~7-fold for the homogenate dataset), but some clusters can still be entirely zero within just the samples selected by `ix` (e.g. clusters only present in other samples). Left in, those constant rows add a block of tied ranks to the Spearman correlation below, which can shift the ranking — and therefore the correlation — of the real values. `ix` is the balanced, pooled sample set from [step 3](tutorial-03-map.qmd):
 
 ```r
-counts_filt <- as.matrix(cluster_counts[, ix])
+counts_filt <- cluster_counts[, ix, drop = FALSE]
+counts_filt <- counts_filt[Matrix::rowSums(counts_filt) > 0, , drop = FALSE]
+counts_filt <- as.matrix(counts_filt)
 ```
 
 ### Calculate a Spearman-based dissimilarity
