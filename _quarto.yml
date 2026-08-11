@@ -8,8 +8,6 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: agenda.qmd
-        text: Agenda
       - href: tutorial.qmd
         text: Hands-on tutorial
 
