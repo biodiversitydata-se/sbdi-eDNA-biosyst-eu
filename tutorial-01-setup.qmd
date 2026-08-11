@@ -1,5 +1,5 @@
 ---
-title: "1. Set up the environment"
+title: "1. Environment setup"
 format:
   html:
     toc: false

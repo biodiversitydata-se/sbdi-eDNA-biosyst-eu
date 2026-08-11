@@ -7,10 +7,10 @@ format:
 
 This tutorial walks through the main steps needed to integrate ASV portal data in R and explore biodiversity patterns. As a case study, we use COI metabarcoding data from the [Insect Biome Atlas](https://www.insectbiomeatlas.org/){target="_blank"} (IBA) project, which sampled arthropods at 200 Swedish sites across six habitat types (forest, cropland, wetland, grassland, urban, alpine). We combine two Malaise-trap datasets extracted with different protocols — homogenate and a downsampled subset of lysate — to examine community composition across habitats.
 
-1. [Setup](tutorial-01-setup.qmd) — Access the workshop RStudio environment (or run locally)
+1. [Environment setup](tutorial-01-setup.qmd) — Access the workshop RStudio environment (or run locally)
 2. [Data preparation](tutorial-02-prep.qmd) — Load, merge and aggregate data sourced from the ASV portal
 3. [Sample mapping](tutorial-03-map.qmd) — Filter, balance and map sampling coverage across Sweden and habitat types
-4. [Community composition](tutorial-04-pcoa.qmd) — Explore differences among samples using Spearman dissimilarity and PCoA
+4. [Community composition (beta diversity)](tutorial-04-pcoa.qmd) — Explore differences among samples using Spearman dissimilarity and PCoA
 5. [Alpha diversity (within-sample)](tutorial-05-shannon.qmd) — Examine Shannon diversity across habitat types
 6. [Taxonomic composition](tutorial-06-barplots.qmd) — Barplots across habitats and months
 

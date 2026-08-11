@@ -1,5 +1,5 @@
 ---
-title: "3. Map samples"
+title: "3. Sample mapping"
 format:
   html:
     toc: false

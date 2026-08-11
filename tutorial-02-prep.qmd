@@ -1,5 +1,5 @@
 ---
-title: "2. Prepare data"
+title: "2. Data preparation"
 format:
   html:
     toc: false
