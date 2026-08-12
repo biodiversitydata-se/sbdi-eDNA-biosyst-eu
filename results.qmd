@@ -11,7 +11,7 @@ format:
 
 ### Sampling sites across Sweden
 
-*Map of the balanced, pooled IBA sampling sites, coloured by habitat type.*
+*One map per month of the balanced, pooled IBA sampling sites, coloured by habitat type.*
 
 ![](figures/3_map.png)
 

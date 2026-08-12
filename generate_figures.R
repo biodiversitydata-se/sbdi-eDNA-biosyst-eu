@@ -78,21 +78,27 @@ lys_ix <- ix_all[dataset_id[ix_all] == "IBA_CO1_lysate_2019_SE"]
 ix     <- c(hom_ix, sample(lys_ix, size = length(hom_ix)))
 message(length(ix), " samples after filtering and downsampling (", length(hom_ix), " each)")
 
-newmap <- rworldmap::getMap(resolution = "low")
+plot_monthly_maps <- function() {
+  newmap <- rworldmap::getMap(resolution = "low")
+  par(mfrow = c(4, 4), mar = c(2, 2, 3, 1), xpd = TRUE)
 
-# Many samples share the same/nearby site (repeated visits); jitter spreads
-# them into a visible cluster instead of hiding them behind one point
-set.seed(1)
-lon_jit <- lon + rnorm(length(lon), 0, 0.03)
-lat_jit <- lat + rnorm(length(lat), 0, 0.03)
+  for (m in 1:12) {
+    ix_m <- ix[month[ix] == m]
+    plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1, main = month.abb[m])
+    if (length(ix_m) > 0) {
+      points(lon[ix_m], lat[ix_m], pch = 21,
+             col = "black", bg = color_habitat[ix_m], cex = 1.5)
+    }
+  }
 
-png(fig("3_map.png"), width = 700, height = 700)
-par(mar = c(2, 2, 3, 1))
-plot(newmap, xlim = c(10, 25), ylim = c(55, 70), asp = 1, main = "Sampling sites")
-points(lon_jit[ix], lat_jit[ix], pch = 21, col = "black", bg = color_habitat[ix], cex = 1.8)
-legend("bottomleft", bty = "o", bg = "white", legend = names(habitat_cols),
-       pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.0,
-       title = "Habitat")
+  plot.new()
+  legend("left", bty = "n", legend = names(habitat_cols),
+         pt.bg = habitat_cols, pch = 21, pt.cex = 1.6, cex = 1.1,
+         title = "Habitat")
+}
+
+png(fig("3_map.png"), width = 1100, height = 950)
+plot_monthly_maps()
 dev.off()
 
 # ── Tutorial 4: PCoA (Spearman-based dissimilarity) ───────────────────────────
