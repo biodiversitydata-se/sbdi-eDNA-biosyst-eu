@@ -146,7 +146,7 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = method_cols, legend = method_labs)
 ```
 
-The first two PCoA axes each explain only about 3% of the variation, so the plots capture only part of the community differences. They suggest effects of habitat, sampling date and latitude, while homogenate and lysate samples are largely mixed. Pooling therefore seems reasonable, although effects along other axes cannot be ruled out.
+The first two PCoA axes each explain only about 4% of the variation, so the plots capture only part of the community differences. They suggest effects of habitat, sampling date and latitude, while homogenate and lysate samples are largely mixed. Pooling therefore seems reasonable, although effects along other axes cannot be ruled out.
 
 Many sampling sites are also close together (~10–15 km apart); this spatial autocorrelation means nearby samples may be similar regardless of habitat — worth keeping in mind when interpreting the habitat patterns above.
 

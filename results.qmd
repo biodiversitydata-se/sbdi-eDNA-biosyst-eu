@@ -5,13 +5,13 @@ format:
     toc: true
 ---
 
-*Example results from running the tutorial on two combined IBA COI datasets, `IBA_CO1_homogenate_2019_SE` and `IBA_CO1_lysate_2019_SE` (downsampled and pooled), merged with `merge_data()`.*
+*Example results from running the tutorial on two combined IBA COI datasets, `IBA_CO1_homogenate_2019_SE` and `IBA_CO1_lysate_2019_SE` (paired by site and date, then downsampled and pooled), merged with `merge_data()`.*
 
 ---
 
 ### Sampling sites across Sweden
 
-*One map per month of the balanced, pooled IBA sampling sites, coloured by habitat type.*
+*One map per month of the paired, pooled IBA sampling sites, coloured by habitat type.*
 
 ![](figures/3_map.png)
 
@@ -19,7 +19,7 @@ format:
 
 ### Community differences — beta diversity (PCoA)
 
-*Principal Coordinates Analysis (Spearman-based dissimilarity) of cluster-level community composition, coloured by year-day, habitat, latitude and extraction method. Homogenate and lysate samples are thoroughly mixed in the last panel — extraction method explains only ~0.3% of the variance in community composition (PERMANOVA), compared to ~4% for habitat — supporting pooling both for the rest of the analysis.*
+*Principal Coordinates Analysis (Spearman-based dissimilarity) of cluster-level community composition, coloured by year-day, habitat, latitude and extraction method. Homogenate and lysate samples are thoroughly mixed in the last panel — extraction method explains only ~0.2% of the variance in community composition (PERMANOVA), compared to ~7% for habitat — supporting pooling both for the rest of the analysis.*
 
 ![](figures/4_pcoa.png)
 

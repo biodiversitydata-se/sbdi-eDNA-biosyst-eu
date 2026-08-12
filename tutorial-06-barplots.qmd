@@ -78,7 +78,7 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
 }
 ```
 
-The same balanced sample set selected in [step 3](tutorial-03-map.qmd), stored in `ix`, is used both to select the most abundant taxa and to calculate the habitat-by-month averages.
+The same paired sample set selected in [step 3](tutorial-03-map.qmd), stored in `ix`, is used both to select the most abundant taxa and to calculate the habitat-by-month averages.
 
 ### Choose a taxonomic rank
 
