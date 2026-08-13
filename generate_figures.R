@@ -2,10 +2,11 @@
 # Figures are saved to the figures/ folder in the website repo.
 #
 # data_path should point at a folder containing both IBA_CO1_homogenate_2019_SE.zip
-# and IBA_CO1_lysate_2019_SE.zip. Lysate is downsampled to homogenate's size
-# right after loading, and every figure after that (map, PCoA, Shannon,
-# barplots) uses that single balanced, pooled sample set - one load/merge
-# pass total, kept small and fast throughout.
+# and IBA_CO1_lysate_2019_SE.zip. Homogenate and lysate samples from the same
+# site and date are paired right after loading, then downsampled for memory,
+# and every figure after that (map, PCoA, Shannon, barplots) uses that single
+# paired, pooled sample set - one load/merge pass total, kept small and fast
+# throughout.
 
 library(asvoccur)
 library(vegan)
@@ -39,6 +40,7 @@ event_start <- lubridate::parse_date_time(
 )
 month <- lubridate::month(event_start)
 yday  <- lubridate::yday(event_start)
+event_date_only <- as.Date(event_start)
 
 # Check ENVO values and adjust habitat_map if needed:
 print(unique(merged_df$events$env_local_scale))
@@ -63,20 +65,35 @@ habitat_cols <- c(
 )
 color_habitat <- habitat_cols[habitat]
 
-# Filter to sufficient depth and complete dates, then downsample lysate down
-# to homogenate's size so both extraction methods are represented equally and
-# PCoA's eigendecomposition (O(n^3) in sample count) stays fast. ix is the
-# fixed, pooled sample set used by every figure from here on.
+# Filter to sufficient depth and complete dates, then pair homogenate and
+# lysate samples that come from the same physical site and date - most
+# homogenate samples have a genuine lysate counterpart, so this gives a
+# matched comparison rather than two independently-drawn groups.
 sample_depth <- Matrix::colSums(merged$counts)
 print(summary(sample_depth))
-ix_all     <- which(sample_depth >= 100000 & !is.na(yday))
-dataset_id <- factor(sub(":.*", "", colnames(merged$counts)))
+ix_all      <- which(sample_depth >= 100000 & !is.na(yday))
+dataset_id  <- factor(sub(":.*", "", colnames(merged$counts)))
+location_id <- merged_df$events$locationID
 
-set.seed(1)
 hom_ix <- ix_all[dataset_id[ix_all] == "IBA_CO1_homogenate_2019_SE"]
 lys_ix <- ix_all[dataset_id[ix_all] == "IBA_CO1_lysate_2019_SE"]
-ix     <- c(hom_ix, sample(lys_ix, size = length(hom_ix)))
-message(length(ix), " samples after filtering and downsampling (", length(hom_ix), " each)")
+
+# Keep only samples from site+dates present in both datasets
+site_date_key <- function(ix) paste(location_id[ix], event_date_only[ix])
+shared_keys <- intersect(unique(site_date_key(hom_ix)), unique(site_date_key(lys_ix)))
+
+hom_paired <- hom_ix[site_date_key(hom_ix) %in% shared_keys]
+lys_paired <- lys_ix[site_date_key(lys_ix) %in% shared_keys]
+message(length(hom_paired), " of ", length(hom_ix), " homogenate samples have a matching lysate site+date")
+
+# Still too many samples for PCoA's O(n^3) eigendecomposition to stay fast on
+# a shared workshop VM, so we downsample each method evenly down to a lighter total.
+target_n <- 800
+set.seed(1)
+n_each <- target_n %/% 2
+ix <- c(sample(hom_paired, size = min(n_each, length(hom_paired))),
+        sample(lys_paired, size = min(n_each, length(lys_paired))))
+message(length(ix), " samples after pairing and downsampling")
 
 plot_monthly_maps <- function() {
   newmap <- rworldmap::getMap(resolution = "low")

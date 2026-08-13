@@ -16,8 +16,6 @@ Log in using the credentials provided during the workshop:
 
 Resources are shared, so **avoid creating additional large objects**. The VM shuts down after the workshop — save your work as an R script and download it via the Files pane (More → Export) before you leave.
 
-Some figures later in the tutorial have several panels and can look cramped in the small Plots pane on a laptop screen — click **Zoom** above the pane to open the figure in a larger, resizable window.
-
 ### Check required packages
 
 All required packages are pre-installed in the workshop environment. Load them and confirm that they are available:

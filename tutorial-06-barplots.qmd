@@ -78,7 +78,7 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
 }
 ```
 
-The same balanced sample set selected in [step 3](tutorial-03-map.qmd), stored in `ix`, is used both to select the most abundant taxa and to calculate the habitat-by-month averages.
+The same paired sample set selected in [step 3](tutorial-03-map.qmd), stored in `ix`, is used both to select the most abundant taxa and to calculate the habitat-by-month averages.
 
 ### Choose a taxonomic rank
 
@@ -99,8 +99,6 @@ Plot the eight most abundant orders across habitats and months:
 ```r
 plot_barplots(rank = 4, top_x = 8)
 ```
-
-Each panel represents a habitat and each bar a month, with coloured segments showing the mean relative abundance of the selected orders. Diptera dominate many habitat–month combinations, while the contribution of other orders varies across habitats and months. Some habitat–month combinations have no samples, so these patterns should be interpreted alongside the sampling coverage in step 3.
 
 ---
 
