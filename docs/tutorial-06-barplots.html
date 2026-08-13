@@ -237,7 +237,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The same balanced sample set selected in <a href="./tutorial-03-map.html">step 3</a>, stored in <code>ix</code>, is used both to select the most abundant taxa and to calculate the habitat-by-month averages.</p>
+<p>The same paired sample set selected in <a href="./tutorial-03-map.html">step 3</a>, stored in <code>ix</code>, is used both to select the most abundant taxa and to calculate the habitat-by-month averages.</p>
 </section>
 <section id="choose-a-taxonomic-rank" class="level3">
 <h3 class="anchored" data-anchor-id="choose-a-taxonomic-rank">Choose a taxonomic rank</h3>
@@ -256,7 +256,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="example-plot-top-orders">Example: plot top orders</h3>
 <p>Plot the eight most abundant orders across habitats and months:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_barplots</span>(<span class="at">rank =</span> <span class="dv">4</span>, <span class="at">top_x =</span> <span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Each panel represents a habitat and each bar a month, with coloured segments showing the mean relative abundance of the selected orders. Diptera dominate many habitat–month combinations, while the contribution of other orders varies across habitats and months. Some habitat–month combinations have no samples, so these patterns should be interpreted alongside the sampling coverage in step 3.</p>
 <hr>
 <p><a href="./tutorial-05-shannon.html">← Previous</a> · <a href="./tutorial.html">Overview</a></p>
 

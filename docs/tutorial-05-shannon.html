@@ -182,7 +182,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(shannon <span class="sc">~</span> habitat[ix], <span class="at">las =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">""</span>,</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylab =</span> <span class="st">"Shannon diversity"</span>,</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> habitat_cols[<span class="fu">levels</span>(<span class="fu">factor</span>(habitat[ix]))])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Shannon diversity is broadly similar across habitats, with substantial overlap in their distributions. This contrasts with the PCoA in step 4: habitats can differ in community composition without showing equally strong differences in within-sample diversity.</p>
+<p>Shannon diversity is broadly similar across habitats, with overlapping distributions. This doesn’t contradict the PCoA in step 4: PCoA reflects <em>which</em> species are present, while Shannon reflects <em>how many</em> and how evenly distributed — habitats can differ in composition but have similar diversity levels.</p>
 <hr>
 <p><a href="./tutorial-04-pcoa.html">← Previous</a> · <a href="./tutorial.html">Overview</a> · <a href="./tutorial-06-barplots.html">Next →</a></p>
 
