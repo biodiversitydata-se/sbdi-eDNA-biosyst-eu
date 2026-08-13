@@ -279,15 +279,18 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
       main = hab
     )
 
-    legend(
-      "bottomleft",
-      bty = "n",
-      pch = 19,
-      col = mycols(length(ok))[length(ok):1],
-      cex = size_taxa,
-      inset = c(1, 0),
-      legend = rownames(cladecounts$norm[[rank]])[rev(ok)]
-    )
+    # ok is the same set of taxa in every panel, so one legend suffices
+    if (hab == habitats[1]) {
+      legend(
+        "bottomleft",
+        bty = "n",
+        pch = 19,
+        col = mycols(length(ok))[length(ok):1],
+        cex = size_taxa,
+        inset = c(1, 0),
+        legend = rownames(cladecounts$norm[[rank]])[rev(ok)]
+      )
+    }
   }
 }
 
