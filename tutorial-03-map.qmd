@@ -109,7 +109,7 @@ lys_paired <- lys_ix[site_date_key(lys_ix) %in% shared_keys]
 length(hom_paired) + length(lys_paired)
 ```
 
-This keeps 817 of the 826 homogenate samples. That's 1,631 samples going into the PCoA in the next step — possibly heavier than our shared workshop VM can comfortably handle at once, so we downsample each method evenly down to a lighter total:
+That's 1,631 samples going into the PCoA in the next step — possibly heavier than our shared workshop VM can comfortably handle at once, so we downsample each method evenly down to a lighter total:
 
 ```r
 target_n <- 800
