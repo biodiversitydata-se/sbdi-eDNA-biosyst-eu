@@ -1,14 +1,7 @@
-# Run this script to generate all tutorial figures.
-# Figures are saved to the figures/ folder in the website repo.
-# See vm_run.R for the same code without file-saving, for testing in RStudio -
-# keep the two in sync when the tutorial code changes.
-#
-# data_path should point at a folder containing both IBA_CO1_homogenate_2019_SE.zip
-# and IBA_CO1_lysate_2019_SE.zip. Homogenate and lysate samples from the same
-# site and date are paired right after loading, then downsampled for memory,
-# and every figure after that (map, PCoA, Shannon, barplots) uses that single
-# paired, pooled sample set - one load/merge pass total, kept small and fast
-# throughout.
+# Step-by-step tutorial code to paste into RStudio on the workshop VM.
+# Mirrors generate_figures.R, but displays each figure in the Plots pane
+# instead of saving it to a PNG - keep this file in sync with
+# generate_figures.R whenever the tutorial code changes.
 
 library(asvoccur)
 library(vegan)
@@ -16,10 +9,7 @@ library(ape)
 library(rworldmap)
 library(lubridate)
 
-data_path  <- "~/Downloads/IBA/lys_hom"
-figure_dir <- "~/code/github/sbdi-eDNA-biosyst-eu/figures"
-dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
-fig <- function(name) file.path(figure_dir, name)
+data_path <- "/srv/course-data"
 
 # ── Tutorial 2: Load and prepare data ────────────────────────────────────────
 
@@ -116,9 +106,7 @@ plot_monthly_maps <- function() {
          title = "Habitat")
 }
 
-png(fig("3_map.png"), width = 1100, height = 950)
 plot_monthly_maps()
-dev.off()
 
 # ── Tutorial 4: PCoA (Spearman-based dissimilarity) ───────────────────────────
 
@@ -180,7 +168,6 @@ method_labs <- c(IBA_CO1_homogenate_2019_SE = "homogenate", IBA_CO1_lysate_2019_
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
 ylab <- paste0("PC2 (", round(pcoa_res$values$Rel_corr_eig[2] * 100), "%)")
 
-png(fig("4_pcoa.png"), width = 900, height = 900)
 par(mfrow = c(2, 2), mar = c(4, 4, 2, 6), xpd = TRUE)
 
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
@@ -208,19 +195,16 @@ plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      xlab = xlab, ylab = ylab, main = "Colour by extraction method")
 legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = method_cols, legend = method_labs)
-dev.off()
 
 # ── Tutorial 5: Alpha diversity (Shannon index by habitat) ───────────────────
 # Reuses counts_filt from above instead of building a second large dense matrix
 
 shannon <- vegan::diversity(counts_filt, MARGIN = 2)
 
-png(fig("5_shannon.png"), width = 700, height = 500)
 par(mar = c(7, 4, 2, 1))
 boxplot(shannon ~ habitat[ix], las = 2, xlab = "",
         ylab = "Shannon diversity",
         col = habitat_cols[levels(factor(habitat[ix]))])
-dev.off()
 
 # ── Tutorial 6: Barplots ──────────────────────────────────────────────────────
 # Identifies the most abundant taxa across the selected samples, calculates
@@ -300,8 +284,6 @@ plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
   )
 }
 
-png(fig("6_barplots.png"), width = 800, height = 1400)
 plot_barplots(rank = 4, top_x = 8)
-dev.off()
 
-message("Done — figures saved to ", figure_dir)
+message("Done.")
