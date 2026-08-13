@@ -15,7 +15,11 @@ Core sample-level metadata is available in `merged_df$events`:
 colnames(merged_df$events)
 ```
 
-Samples are ordered consistently across tables — `rownames(merged_df$events)`, `rownames(merged_df$emof)` and `colnames(merged$counts)` all refer to the same samples.
+Samples are ordered consistently across tables — `rownames(merged_df$events)`, `rownames(merged_df$emof)` and `colnames(merged$counts)` all refer to the same samples:
+
+```r
+identical(rownames(merged_df$events), rownames(merged_df$emof))
+```
 
 ---
 
@@ -86,47 +90,35 @@ length(ix)
 
 `100000` is a reasonable depth threshold here — check the `summary()` output above and adjust it if it excludes far more or fewer samples than expected for your dataset.
 
-The two datasets differ hugely in size (homogenate: ~860 samples; lysate: ~4,550). Rather than just matching the *count* of samples from each method, we pair them properly: homogenate and lysate were often extracted from the same physical sample, so most homogenate samples have a genuine lysate counterpart at the same site and date. We keep only those matched pairs, so the comparison in the next step is between the same underlying samples rather than two independently-drawn groups:
+The two datasets differ in size (homogenate: ~860 samples; lysate: ~4,550). We balance them by keeping only samples from site+dates present in both:
 
 ```r
-dataset_id <- factor(sub(":.*", "", colnames(merged$counts)))
+dataset_id      <- factor(sub(":.*", "", colnames(merged$counts)))
 event_date_only <- as.Date(event_start)
+location_id     <- merged_df$events$locationID
 
 hom_ix <- ix[dataset_id[ix] == "IBA_CO1_homogenate_2019_SE"]
 lys_ix <- ix[dataset_id[ix] == "IBA_CO1_lysate_2019_SE"]
 
-# Pair by exact site (rounded lat/lon) + exact date. Group by site-date so no
-# sample is reused across more than one pair, even where a site has multiple
-# replicates of one method.
-site_key <- function(ix) paste(round(lat[ix], 4), round(lon[ix], 4), event_date_only[ix])
-hom_keys <- site_key(hom_ix)
-lys_keys <- site_key(lys_ix)
+# Keep only samples from site+dates present in both datasets
+site_date_key <- function(ix) paste(location_id[ix], event_date_only[ix])
+shared_keys <- intersect(unique(site_date_key(hom_ix)), unique(site_date_key(lys_ix)))
 
-hom_paired <- integer(0)
-lys_paired <- integer(0)
-for (k in intersect(unique(hom_keys), unique(lys_keys))) {
-  h <- hom_ix[hom_keys == k]
-  l <- lys_ix[lys_keys == k]
-  n <- min(length(h), length(l))
-  hom_paired <- c(hom_paired, h[seq_len(n)])
-  lys_paired <- c(lys_paired, l[seq_len(n)])
-}
-length(hom_paired)  # number of genuine pairs found
+hom_paired <- hom_ix[site_date_key(hom_ix) %in% shared_keys]
+lys_paired <- lys_ix[site_date_key(lys_ix) %in% shared_keys]
+length(hom_paired) + length(lys_paired)
 ```
 
-This keeps 814 of the 826 homogenate samples — almost all of them have a matching lysate sample.
-
-::: {.callout-note}
-**Memory.** With both methods paired and kept in full, that's 1,628 samples going into the PCoA in the next step — heavier than most laptops or a shared workshop VM can comfortably handle at once. We downsample the *pairs* (not each method separately, which would break the pairing) down to a lighter number:
+This keeps 817 of the 826 homogenate samples. That's 1,631 samples going into the PCoA in the next step — possibly heavier than our shared workshop VM can comfortably handle at once, so we downsample each method evenly down to a lighter total:
 
 ```r
-target_pairs <- 400
+target_n <- 800
 set.seed(1)
-pair_sub <- sample(seq_along(hom_paired), size = min(target_pairs, length(hom_paired)))
-ix <- c(hom_paired[pair_sub], lys_paired[pair_sub])
+n_each <- target_n %/% 2
+ix <- c(sample(hom_paired, size = min(n_each, length(hom_paired))),
+        sample(lys_paired, size = min(n_each, length(lys_paired))))
 length(ix)
 ```
-:::
 
 From here on, `ix` is the fixed set of samples used throughout the rest of the tutorial — both extraction methods, pooled and paired.
 
@@ -158,6 +150,8 @@ plot_monthly_maps <- function() {
 
 plot_monthly_maps()
 ```
+
+This figure has several panels and can look cramped on a laptop screen — click **Zoom** above the Plots pane for a larger view. Points also overlap since paired samples share a location, and nearby sites (~10–15 km apart) can coincide at this scale — so it looks sparser than the actual sample count.
 
 ---
 

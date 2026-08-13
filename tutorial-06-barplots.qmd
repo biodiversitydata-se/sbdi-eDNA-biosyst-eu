@@ -100,8 +100,6 @@ Plot the eight most abundant orders across habitats and months:
 plot_barplots(rank = 4, top_x = 8)
 ```
 
-Each panel represents a habitat and each bar a month, with coloured segments showing the mean relative abundance of the selected orders. Diptera dominate many habitat–month combinations, while the contribution of other orders varies across habitats and months. Some habitat–month combinations have no samples, so these patterns should be interpreted alongside the sampling coverage in step 3.
-
 ---
 
 [← Previous](tutorial-05-shannon.qmd) · [Overview](tutorial.qmd)

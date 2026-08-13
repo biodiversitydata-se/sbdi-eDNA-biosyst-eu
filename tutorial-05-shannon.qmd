@@ -26,7 +26,7 @@ boxplot(shannon ~ habitat[ix], las = 2, xlab = "",
         col = habitat_cols[levels(factor(habitat[ix]))])
 ```
 
-Shannon diversity is broadly similar across habitats, with substantial overlap in their distributions. This contrasts with the PCoA in step 4: habitats can differ in community composition without showing equally strong differences in within-sample diversity.
+Shannon diversity is broadly similar across habitats, with overlapping distributions. This doesn't contradict the PCoA in step 4: PCoA reflects *which* species are present, while Shannon reflects *how many* and how evenly distributed — habitats can differ in composition but have similar diversity levels.
 
 ---
 

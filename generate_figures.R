@@ -71,38 +71,29 @@ color_habitat <- habitat_cols[habitat]
 # matched comparison rather than two independently-drawn groups.
 sample_depth <- Matrix::colSums(merged$counts)
 print(summary(sample_depth))
-ix_all     <- which(sample_depth >= 100000 & !is.na(yday))
-dataset_id <- factor(sub(":.*", "", colnames(merged$counts)))
+ix_all      <- which(sample_depth >= 100000 & !is.na(yday))
+dataset_id  <- factor(sub(":.*", "", colnames(merged$counts)))
+location_id <- merged_df$events$locationID
 
 hom_ix <- ix_all[dataset_id[ix_all] == "IBA_CO1_homogenate_2019_SE"]
 lys_ix <- ix_all[dataset_id[ix_all] == "IBA_CO1_lysate_2019_SE"]
 
-# Pair by exact site (rounded lat/lon) + exact date. Group by site-date so no
-# sample is reused across more than one pair, even where a site has multiple
-# replicates of one method.
-site_key <- function(ix) paste(round(lat[ix], 4), round(lon[ix], 4), event_date_only[ix])
-hom_keys <- site_key(hom_ix)
-lys_keys <- site_key(lys_ix)
+# Keep only samples from site+dates present in both datasets
+site_date_key <- function(ix) paste(location_id[ix], event_date_only[ix])
+shared_keys <- intersect(unique(site_date_key(hom_ix)), unique(site_date_key(lys_ix)))
 
-hom_paired <- integer(0)
-lys_paired <- integer(0)
-for (k in intersect(unique(hom_keys), unique(lys_keys))) {
-  h <- hom_ix[hom_keys == k]
-  l <- lys_ix[lys_keys == k]
-  n <- min(length(h), length(l))
-  hom_paired <- c(hom_paired, h[seq_len(n)])
-  lys_paired <- c(lys_paired, l[seq_len(n)])
-}
+hom_paired <- hom_ix[site_date_key(hom_ix) %in% shared_keys]
+lys_paired <- lys_ix[site_date_key(lys_ix) %in% shared_keys]
 message(length(hom_paired), " of ", length(hom_ix), " homogenate samples have a matching lysate site+date")
 
-# Even paired, that's too many samples for PCoA's O(n^3) eigendecomposition to
-# stay fast on a shared workshop VM, so we downsample the pairs (not each side
-# separately, which would break the pairing) down to a lighter number.
-target_pairs <- 400
+# Still too many samples for PCoA's O(n^3) eigendecomposition to stay fast on
+# a shared workshop VM, so we downsample each method evenly down to a lighter total.
+target_n <- 800
 set.seed(1)
-pair_sub <- sample(seq_along(hom_paired), size = min(target_pairs, length(hom_paired)))
-ix <- c(hom_paired[pair_sub], lys_paired[pair_sub])
-message(length(ix), " samples after pairing and downsampling to ", target_pairs, " pairs")
+n_each <- target_n %/% 2
+ix <- c(sample(hom_paired, size = min(n_each, length(hom_paired))),
+        sample(lys_paired, size = min(n_each, length(lys_paired))))
+message(length(ix), " samples after pairing and downsampling")
 
 plot_monthly_maps <- function() {
   newmap <- rworldmap::getMap(resolution = "low")
