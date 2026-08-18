@@ -16,7 +16,7 @@ library(ape)
 library(rworldmap)
 library(lubridate)
 
-data_path  <- "~/Downloads/IBA/lys_hom"
+data_path  <- "./data/lys_hom"
 figure_dir <- "~/code/github/sbdi-eDNA-biosyst-eu/figures"
 dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
 fig <- function(name) file.path(figure_dir, name)
