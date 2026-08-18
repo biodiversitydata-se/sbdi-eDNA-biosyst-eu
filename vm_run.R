@@ -1,7 +1,9 @@
 # Step-by-step tutorial code to paste into RStudio on the workshop VM.
-# Mirrors generate_figures.R, but displays each figure in the Plots pane
-# instead of saving it to a PNG - keep this file in sync with
-# generate_figures.R whenever the tutorial code changes.
+# This is every R code block from tutorial-01 through tutorial-06, in order,
+# exactly as written in the tutorial (including inspection lines) - keep
+# this file in sync with the .qmd files whenever the tutorial code changes.
+# See generate_figures.R for the equivalent script that saves figures to
+# disk instead of displaying them in the Plots pane.
 
 library(asvoccur)
 library(vegan)
@@ -11,31 +13,43 @@ library(lubridate)
 
 data_path <- "/srv/course-data"
 
-# ── Tutorial 2: Load and prepare data ────────────────────────────────────────
+# ── Tutorial 2: Data preparation ─────────────────────────────────────────────
 
-loaded      <- load_data(data_path)
-merged      <- merge_data(loaded)
-merged_df   <- convert_to_df(merged)
+loaded <- load_data(data_path)
+
+?asvoccur::load_data
+
+merged <- merge_data(loaded)
+
+merged_df <- convert_to_df(merged)
+
+colnames(merged$counts)
+
 cladecounts <- sum_by_clade(merged$counts, merged$asvs)
 
-# ── Tutorial 3: Map ───────────────────────────────────────────────────────────
+cladecounts$raw$phylum[1:3, 1:3]  # raw counts at phylum level
+cladecounts$norm$order[8:10, 1:2]  # relative abundances at order level
 
-lat   <- as.numeric(merged_df$events$decimalLatitude)
-lon   <- as.numeric(merged_df$events$decimalLongitude)
+# ── Tutorial 3: Sample mapping ───────────────────────────────────────────────
+
+colnames(merged_df$events)
+
+identical(rownames(merged_df$events), rownames(merged_df$emof))
 
 # eventDate is a start/end interval string; a few samples have only a bare
 # year (no month/day) - parse_date_time() leaves those as NA rather than
 # guessing, so they're excluded downstream instead of getting a misleading date
+lat   <- as.numeric(merged_df$events$decimalLatitude)
+lon   <- as.numeric(merged_df$events$decimalLongitude)
+
 event_start <- lubridate::parse_date_time(
   sub("/.*", "", merged_df$events$eventDate),
   orders = c("ymd_HMSz", "ymd_HMS", "ymd")
 )
 month <- lubridate::month(event_start)
 yday  <- lubridate::yday(event_start)
-event_date_only <- as.Date(event_start)
 
-# Check ENVO values and adjust habitat_map if needed:
-print(unique(merged_df$events$env_local_scale))
+unique(merged_df$events$env_local_scale)
 
 habitat_map <- c(
   "forested area [ENVO:00000111]"    = "forest",
@@ -57,16 +71,19 @@ habitat_cols <- c(
 )
 color_habitat <- habitat_cols[habitat]
 
+sample_depth <- Matrix::colSums(merged$counts)
+summary(sample_depth)  # inspect before picking a threshold
+ix <- which(sample_depth >= 100000 & !is.na(yday))
+length(ix)
+
 # Filter to sufficient depth and complete dates, then balance the two
 # extraction methods by keeping only samples from site+dates present in both.
-sample_depth <- Matrix::colSums(merged$counts)
-print(summary(sample_depth))
-ix_all      <- which(sample_depth >= 100000 & !is.na(yday))
-dataset_id  <- factor(sub(":.*", "", colnames(merged$counts)))
-location_id <- merged_df$events$locationID
+dataset_id      <- factor(sub(":.*", "", colnames(merged$counts)))
+event_date_only <- as.Date(event_start)
+location_id     <- merged_df$events$locationID
 
-hom_ix <- ix_all[dataset_id[ix_all] == "IBA_CO1_homogenate_2019_SE"]
-lys_ix <- ix_all[dataset_id[ix_all] == "IBA_CO1_lysate_2019_SE"]
+hom_ix <- ix[dataset_id[ix] == "IBA_CO1_homogenate_2019_SE"]
+lys_ix <- ix[dataset_id[ix] == "IBA_CO1_lysate_2019_SE"]
 
 # Keep only samples from site+dates present in both datasets
 site_date_key <- function(ix) paste(location_id[ix], event_date_only[ix])
@@ -74,16 +91,14 @@ shared_keys <- intersect(unique(site_date_key(hom_ix)), unique(site_date_key(lys
 
 hom_paired <- hom_ix[site_date_key(hom_ix) %in% shared_keys]
 lys_paired <- lys_ix[site_date_key(lys_ix) %in% shared_keys]
-message(length(hom_paired), " of ", length(hom_ix), " homogenate samples have a matching lysate site+date")
+length(hom_paired) + length(lys_paired)
 
-# Still too many samples for PCoA's O(n^3) eigendecomposition to stay fast on
-# a shared workshop VM, so we downsample each method evenly down to a lighter total.
 target_n <- 800
 set.seed(1)
 n_each <- target_n %/% 2
 ix <- c(sample(hom_paired, size = min(n_each, length(hom_paired))),
         sample(lys_paired, size = min(n_each, length(lys_paired))))
-message(length(ix), " samples after pairing and downsampling")
+length(ix)
 
 plot_monthly_maps <- function() {
   newmap <- rworldmap::getMap(resolution = "low")
@@ -105,42 +120,50 @@ plot_monthly_maps <- function() {
 }
 
 plot_monthly_maps()
-# If a plot doesn't appear: run dev.off() in the console, 
-# then try plotting again. This clears a leftover graphics device 
+# If a plot doesn't appear: run dev.off() in the console,
+# then try plotting again. This clears a leftover graphics device
 # from an earlier error and lets RStudio reconnect to the Plots pane.
 
-# ── Tutorial 4: PCoA (Spearman-based dissimilarity) ───────────────────────────
+# ── Tutorial 4: Community differences (beta diversity) ──────────────────────
 
 # In addition to ASV taxonomy and BOLD BINs, the IBA data also include
 # project-specific cluster assignments in associatedSequences. Read from
 # loaded, not merged: merge_data() drops that column when combining datasets
 cluster_lookup <- unique(data.table::rbindlist(lapply(loaded$asvs, function(x)
   x[, .(taxonID, associatedSequences)])))
-cluster_id <- cluster_lookup$associatedSequences[match(rownames(merged$counts), cluster_lookup$taxonID)]
+
+cluster_id <- cluster_lookup$associatedSequences[
+  match(rownames(merged$counts), cluster_lookup$taxonID)
+]
 
 # Check that every ASV maps to one cluster
-stopifnot(sum(is.na(cluster_id)) == 0, anyDuplicated(cluster_lookup$taxonID) == 0)
+stopifnot(
+  sum(is.na(cluster_id)) == 0,
+  anyDuplicated(cluster_lookup$taxonID) == 0
+)
 
 clevels <- unique(cluster_id)
 cidx    <- match(cluster_id, clevels)
-G <- Matrix::sparseMatrix(i = cidx, j = seq_along(cluster_id), x = 1,
-                           dims = c(length(clevels), length(cluster_id)))
+
+G <- Matrix::sparseMatrix(
+  i = cidx,
+  j = seq_along(cluster_id),
+  x = 1,
+  dims = c(length(clevels), length(cluster_id))
+)
+
 cluster_counts <- G %*% merged$counts
 rownames(cluster_counts) <- clevels
-message(nrow(cluster_counts), " clusters (from ", nrow(merged$counts), " ASVs)")
 
-# Subset to ix, then remove clusters absent from all of these samples - such
-# all-zero rows contain no information for comparing the selected samples
+nrow(cluster_counts)
+
 counts_filt <- cluster_counts[, ix, drop = FALSE]
 counts_filt <- counts_filt[Matrix::rowSums(counts_filt) > 0, , drop = FALSE]
 counts_filt <- as.matrix(counts_filt)
 
-# Spearman correlation measures similarity in rank order of cluster
-# abundances between samples; convert to a 0-1 dissimilarity
 spear_cor  <- cor(counts_filt, method = "spearman")
 spear_dist <- (1 - spear_cor) / 2
 
-# Cailliez correction since the dissimilarities are not necessarily Euclidean
 pcoa_res <- pcoa(spear_dist, correction = "cailliez")
 
 ramp <- colorRampPalette(rev(c(
@@ -155,21 +178,27 @@ lat_range <- floor(min(lat[ix], na.rm = TRUE)):ceiling(max(lat[ix], na.rm = TRUE
 color_lat <- ramp(length(lat_range))
 lat_index <- round(lat) - min(lat_range) + 1
 
-# Latitude shown at 2-degree intervals; sampling date by month
+method      <- dataset_id[ix]
+method_cols <- c(
+  IBA_CO1_homogenate_2019_SE = "#e76f51",
+  IBA_CO1_lysate_2019_SE = "#2a9d8f"
+)
+method_labs <- c(
+  IBA_CO1_homogenate_2019_SE = "homogenate",
+  IBA_CO1_lysate_2019_SE = "lysate"
+)
+
 lat_ticks <- seq(ceiling(min(lat_range) / 2) * 2, max(lat_range), by = 2)
 
 month_ticks  <- sort(tapply(yday[ix], month[ix], min))
 month_labels <- month.abb[as.integer(names(month_ticks))]
-
-method      <- dataset_id[ix]
-method_cols <- c(IBA_CO1_homogenate_2019_SE = "#e76f51", IBA_CO1_lysate_2019_SE = "#2a9d8f")
-method_labs <- c(IBA_CO1_homogenate_2019_SE = "homogenate", IBA_CO1_lysate_2019_SE = "lysate")
 
 xlab <- paste0("PC1 (", round(pcoa_res$values$Rel_corr_eig[1] * 100), "%)")
 ylab <- paste0("PC2 (", round(pcoa_res$values$Rel_corr_eig[2] * 100), "%)")
 
 par(mfrow = c(2, 2), mar = c(4, 4, 2, 6), xpd = TRUE)
 
+# Panel: colour by year-day
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = color_yday[yday_index[ix]], pch = 21, cex = 1,
      xlab = xlab, ylab = ylab, main = "Colour by year-day")
@@ -177,12 +206,14 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = color_yday[month_ticks - min(yday_range) + 1],
        legend = month_labels)
 
+# Panel: colour by habitat
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = color_habitat[ix], pch = 21, cex = 1,
      xlab = xlab, ylab = ylab, main = "Colour by habitat")
 legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = habitat_cols, legend = names(habitat_cols))
 
+# Panel: colour by latitude
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = color_lat[lat_index[ix]], pch = 21, cex = 1,
      xlab = xlab, ylab = ylab, main = "Colour by latitude")
@@ -190,14 +221,14 @@ legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = color_lat[lat_ticks - min(lat_range) + 1],
        legend = lat_ticks)
 
+# Panel: colour by extraction method
 plot(pcoa_res$vectors[, 1], pcoa_res$vectors[, 2],
      col = "black", bg = method_cols[as.character(method)], pch = 21, cex = 1,
      xlab = xlab, ylab = ylab, main = "Colour by extraction method")
 legend("bottomleft", bty = "n", pch = 19, cex = 1, inset = c(1, 0),
        col = method_cols, legend = method_labs)
 
-# ── Tutorial 5: Alpha diversity (Shannon index by habitat) ───────────────────
-# Reuses counts_filt from above instead of building a second large dense matrix
+# ── Tutorial 5: Within-sample diversity (alpha diversity) ───────────────────
 
 shannon <- vegan::diversity(counts_filt, MARGIN = 2)
 
@@ -206,11 +237,7 @@ boxplot(shannon ~ habitat[ix], las = 2, xlab = "",
         ylab = "Shannon diversity",
         col = habitat_cols[levels(factor(habitat[ix]))])
 
-# ── Tutorial 6: Barplots ──────────────────────────────────────────────────────
-# Identifies the most abundant taxa across the selected samples, calculates
-# their mean relative abundance for each habitat and month, and displays the
-# results as stacked barplots. Uses the same ix as steps 3-5, so barplots
-# reflect the balanced, pooled sample set rather than every sample loaded
+# ── Tutorial 6: Taxonomic composition ────────────────────────────────────────
 
 plot_barplots <- function(rank, size_taxa = -1, top_x = 10) {
   mycols <- colorRampPalette(c(
