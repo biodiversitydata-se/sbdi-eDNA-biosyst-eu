@@ -37,7 +37,7 @@ data_path <- "/srv/course-data/"
 list.files(data_path)
 ```
 
-If two (IBA_COI) zip files are listed, you are ready to proceed.
+If two (IBA_COI) zip files are listed, you are ready to [proceed](tutorial-02-prep.qmd).
 
 ## Option B (fallback): Run RStudio locally on your laptop
 
@@ -108,6 +108,6 @@ data_path <- "local/path/to/course-data"
 list.files(data_path)
 ```
 
-If the expected zip file(s) are listed, you are ready to proceed.
+If the expected zip file(s) are listed, you are ready to [proceed](tutorial-02-prep.qmd).
 
 [Overview](tutorial.qmd) · [Next →](tutorial-02-prep.qmd)
