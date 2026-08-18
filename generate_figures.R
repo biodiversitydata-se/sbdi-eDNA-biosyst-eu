@@ -67,10 +67,8 @@ habitat_cols <- c(
 )
 color_habitat <- habitat_cols[habitat]
 
-# Filter to sufficient depth and complete dates, then pair homogenate and
-# lysate samples that come from the same physical site and date - most
-# homogenate samples have a genuine lysate counterpart, so this gives a
-# matched comparison rather than two independently-drawn groups.
+# Filter to sufficient depth and complete dates, then balance the two
+# extraction methods by keeping only samples from site+dates present in both.
 sample_depth <- Matrix::colSums(merged$counts)
 print(summary(sample_depth))
 ix_all      <- which(sample_depth >= 100000 & !is.na(yday))
@@ -122,10 +120,9 @@ dev.off()
 
 # ── Tutorial 4: PCoA (Spearman-based dissimilarity) ───────────────────────────
 
-# The IBA data include project-specific cluster assignments in
-# associatedSequences, alongside more general sequence groupings such as
-# BOLD BINs. Read from loaded, not merged: merge_data() drops that column
-# when combining datasets
+# In addition to ASV taxonomy and BOLD BINs, the IBA data also include
+# project-specific cluster assignments in associatedSequences. Read from
+# loaded, not merged: merge_data() drops that column when combining datasets
 cluster_lookup <- unique(data.table::rbindlist(lapply(loaded$asvs, function(x)
   x[, .(taxonID, associatedSequences)])))
 cluster_id <- cluster_lookup$associatedSequences[match(rownames(merged$counts), cluster_lookup$taxonID)]

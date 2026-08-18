@@ -76,7 +76,7 @@ library(rworldmap)
 library(lubridate)
 
 # Confirm version
-packageVersion("asvoccur")  # Should say 1.1.1
+packageVersion("asvoccur")  # Should say 1.2.0
 ```
 
 ### Download example data from the ASV portal
