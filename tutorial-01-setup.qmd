@@ -9,12 +9,11 @@ format:
 
 ## Option A (recommended): Workshop RStudio environment
 
-A virtual machine running RStudio Server is available in PDC Cloud.
-Log in using the credentials provided during the workshop:
+A virtual machine running RStudio Server was available in PDC Cloud during the workshop.
 
-[RStudio Server](http://193.10.159.192:8787){target="_blank"}
+*This VM was only available during the workshop and is no longer accessible — use Option B below instead.*
 
-Resources are shared, so **avoid creating additional large objects**. The VM shuts down after the workshop — save your work as an R script and download it via the Files pane (More → Export) before you leave.
+Resources were shared, so **avoid creating additional large objects**. The VM shut down after the workshop — save your work as an R script and download it via the Files pane (More → Export) before you leave.
 
 ### Check required packages
 
